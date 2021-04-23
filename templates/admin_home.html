@@ -1,0 +1,8 @@
+{% if session['logged_in'] %}
+   
+	<a href="/admin/logout">Logout</a> <br> <br>
+	
+{% else %}
+<p>Not login!</p>
+
+{% endif %}

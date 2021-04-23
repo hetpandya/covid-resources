@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+    
+    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container{
+        display: none;
+    }
+
+    .search-btn{
+        margin-left: 15px;
+    }
+    
+    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+	<title>Covid-19 India Resources</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <br>
+                <br>
+                <h2 class="text-center mb-5">Covid-19 India Resources</h2>
+                <div class="row">
+
+                    <div class="col-md-6 offset-md-3">
+                        <span class="anchor"></span>
+                        <div class="card card-outline-secondary">
+                            <div class="card-body">
+                                <h3 class="text-center">Select Resource</h3>
+                                <hr>
+                                <div class="alert alert-primary name-alert" role="alert">
+                                    Please enter your name
+                                </div>
+                                <div class="form-group row">
+                                        <div class="col-lg-10">
+                                            <select class="selectpicker states-select" data-live-search="true">
+                                                {%for ix,state in state_names %}
+                                                    <option data-tokens="{{state}}" value="{{ix}}">{{state}}</option>    
+                                                {%endfor%}                                                
+                                            </select>
+                                            
+                                            <br>
+                                            <br>
+                                            
+                                            <div class="district-container">
+  
+                                            </div>
+
+                                            <br>
+                                            
+                                            <div class="services-container">
+                                                <div class="custom-control custom-checkbox remdesivir-container">
+                                                    <input type="checkbox" class="custom-control-input" id="remdesivir-checkbox" name="service-type" value="1">
+                                                    <label class="custom-control-label" for="remdesivir-checkbox">Remdesivir</label>
+                                                </div>
+
+                                                <div class="custom-control custom-checkbox beds-container">
+                                                    <input type="checkbox" class="custom-control-input" id="beds-checkbox" name="service-type" value="2">
+                                                    <label class="custom-control-label" for="beds-checkbox">Beds</label>
+                                                </div>
+
+                                                <div class="custom-control custom-checkbox plasma-container">
+                                                    <input type="checkbox" class="custom-control-input" id="plasma-checkbox" name="service-type" value="3">
+                                                    <label class="custom-control-label" for="plasma-checkbox">Plasma Donors</label>
+                                                </div>
+
+                                                <div class="custom-control custom-checkbox oxygen-container">
+                                                    <input type="checkbox" class="custom-control-input" id="oxygen-checkbox" name="service-type" value="4">
+                                                    <label class="custom-control-label" for="oxygen-checkbox">Oxygen Cylinders</label>
+                                                </div>
+
+                                                <div class="custom-control custom-checkbox tiffin-container">
+                                                    <input type="checkbox" class="custom-control-input" id="tiffin-checkbox" name="service-type" value="5">
+                                                    <label class="custom-control-label" for="tiffin-checkbox">Tiffins</label>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                <div class="form-group row">
+                                    <div class="text-center">
+                                        <button type="button" class="btn btn-primary search-btn">
+                                            Search Resources
+                                        </button>
+
+                                        <br>
+                                        <br>
+                                        
+                                        <div class="alert alert-light wait-alert" role="alert">
+                                            Uploading audio..
+                                        </div>
+
+                                        <div class="alert alert-light success-alert" role="alert">
+                                            Your audio has been uploaded. Thank you for your contribution❤️
+                                        </div>
+
+                                        <div class="alert alert-secondary error-alert" role="alert">
+                                            There was an error ☹️. Please contact me at <a href="https://hetpandya.github.io">hetpandya.github.io</a>.
+                                        </div>
+
+                                        <div id="aud-recorder"></div>
+
+                                        
+                                        <button style="display: none;" type="button" id="send-aud-recording" class="btn btn-success upload-btn"
+                                            >Upload!
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div>Developed with ❤️ by <a class="text-decoration-none" target="_blank" href="https://hetpandya.github.io">Het Pandya</a></div><br><br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+    
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+ 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
+    <script>
+        $('.states-select').on('change', function() {
+            state_id = this.value;
+
+            $.ajax({
+                type:"POST",
+                url:'/get-city/'+state_id,
+                data:{},
+                success: function (response) {
+                    $(".error-alert").hide();
+                    console.log((response));
+                    $(".services-container").show();
+                    $(".district-container").html("");
+                    var $select = $('<select/>', {
+                        'class':"selectpicker",
+                        "data-live-search":"true"
+                    });
+                    for (var idx in response) {
+                        $select.append('<option value=' + response[idx].id + '>' + response[idx].name + '</option>');
+                    }
+                    $select.appendTo('.district-container').selectpicker('refresh');
+                },
+                error: function () {
+                    $(".error-alert").show();
+                    $(".services-container").hide();
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>
