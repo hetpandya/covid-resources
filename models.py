@@ -3,8 +3,18 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import select
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
+import json,os
 
-engine = create_engine('sqlite:///covid_resources.db', echo = True,connect_args={"check_same_thread": False})
+root = os.getcwd()
+
+try:
+    with open(os.path.join(root,"creds.json")) as json_file:
+    	creds = json.load(json_file)
+except:
+    with open(os.path.join(root,"/home/hetpandy/public_html/flask/creds.json")) as json_file:
+    	creds = json.load(json_file)
+
+engine = create_engine(f'mysql://{creds["db_user"]}:{creds["db_password"]}@{creds["db_ip"]}/{creds["db_name"]}', echo = True)
 meta = MetaData()
 
 con = engine.connect()

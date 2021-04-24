@@ -7,7 +7,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<style>
     
-    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container,.resources-table-container,.no-resources-alert{
+    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container,.resources-table-container,.no-resources-alert,.searching-alert{
         display: none;
     }
 
@@ -110,6 +110,12 @@
     
                                             <br>
                                             <br>
+
+                                            <div class="alert alert-light searching-alert" role="alert">
+                                                Searching ..
+                                            </div>
+
+
                                             <div class="alert alert-secondary wait-alert" role="alert">
                                                 Please select a resource to search for.
                                             </div>
@@ -330,6 +336,7 @@
 
         $(".search-btn").click(function(e){
             e.preventDefault();
+            $(".searching-alert").show();
             state_id = $(".states-select :selected").val();
             city_id = $(".city-select :selected").val();
             var resources_list = [];
@@ -353,7 +360,8 @@
                     success: function (response) {
                         $(".error-alert").hide();
                         $(".wait-alert").hide();
-                        
+                        $(".searching-alert").hide();
+                                    
                         for (var i = 0; i < boxes.length; i++){
                             name = boxes[i].name;
                             $("."+name +"-table table tbody").remove();
