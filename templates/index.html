@@ -143,6 +143,7 @@
                                                     <th scope="col">Available</th>
                                                     <th scope="col">Count</th>
                                                     <th scope="col">Verified</th>
+                                                    <th></th>
                                                 </tr>
                                                 </thead>
                                                 
@@ -166,6 +167,7 @@
                                                     <th scope="col">Available</th>
                                                     <th scope="col">Count</th>
                                                     <th scope="col">Verified</th>
+                                                    <th></th>
                                                 </tr>
                                                 </thead>
                                             </table>
@@ -189,6 +191,7 @@
                                                     <th scope="col">Available</th>
                                                     <th scope="col">Count</th>
                                                     <th scope="col">Verified</th>
+                                                    <th></th>
                                                 </tr>
                                                 </thead>
                                             </table>
@@ -210,6 +213,7 @@
                                                     <th scope="col">Available</th>
                                                     <th scope="col">Count</th>
                                                     <th scope="col">Verified</th>
+                                                    <th></th>
                                                 </tr>
                                                 </thead>
                                             </table>
@@ -230,6 +234,7 @@
                                                     <th scope="col">Location</th>
                                                     <th scope="col">Available</th>
                                                     <th scope="col">Verified</th>
+                                                    <th></th>
                                                 </tr>
                                                 </thead>
                                             </table>
@@ -373,12 +378,14 @@
                                 var $html_content = $('<tbody/>');
                                 if( name != "plasma"){
                                     for(var ix = 0; ix < tr_content.length; ix++){
-                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td></tr><td>"+tr_content[ix].verified+"</td></tr>");
+                                        var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
                                     } 
                                 }
                                 else{
                                     for(var ix = 0; ix < tr_content.length; ix++){
-                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td></tr><td>"+tr_content[ix].verified+"</td></tr>");
+                                        var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
                                     }
                                 }
                                 $html_content.appendTo("."+name +"-table table");
