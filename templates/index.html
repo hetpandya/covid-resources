@@ -72,30 +72,20 @@
                                                 <br>
                                                 
                                                 <div class="services-container">
-                                                    <div class="custom-control custom-checkbox remdesivir-container">
-                                                        <input type="checkbox" class="custom-control-input" id="remdesivir-checkbox" name="remdesivir" value="0">
-                                                        <label class="custom-control-label" for="remdesivir-checkbox">Remdesivir</label>
-                                                    </div>
-    
-                                                    <div class="custom-control custom-checkbox beds-container">
-                                                        <input type="checkbox" class="custom-control-input" id="beds-checkbox" name="beds" value="1">
-                                                        <label class="custom-control-label" for="beds-checkbox">Beds</label>
-                                                    </div>
-    
-                                                    <div class="custom-control custom-checkbox plasma-container">
-                                                        <input type="checkbox" class="custom-control-input" id="plasma-checkbox" name="plasma" value="2">
-                                                        <label class="custom-control-label" for="plasma-checkbox">Plasma Donors</label>
-                                                    </div>
-    
-                                                    <div class="custom-control custom-checkbox oxygen-container">
-                                                        <input type="checkbox" class="custom-control-input" id="oxygen-checkbox" name="oxygen" value="3">
-                                                        <label class="custom-control-label" for="oxygen-checkbox">Oxygen Cylinders</label>
-                                                    </div>
-    
-                                                    <div class="custom-control custom-checkbox tiffin-container">
-                                                        <input type="checkbox" class="custom-control-input" id="tiffin-checkbox" name="tiffins" value="4">
-                                                        <label class="custom-control-label" for="tiffin-checkbox">Tiffins</label>
-                                                    </div>
+                                                    {% for ix in range(services_indices|length) %}
+                                                        <div class="custom-control custom-checkbox {{services_indices[ix]}}-container">
+                                                            <input type="checkbox" class="custom-control-input" id="{{services_indices[ix]}}-checkbox" name="{{services_indices[ix]}}" value="{{ix}}">
+                                                            <label class="custom-control-label" for="{{services_indices[ix]}}-checkbox">
+                                                                {%if ix == 2%}
+                                                                    Plasma Donors
+                                                                {%elif ix == 3%}
+                                                                    Oxygen Cylinders
+                                                                {%else%}
+                                                                   {{services_indices[ix].replace("-"," ").title()}}
+                                                                {%endif%}
+                                                            </label>
+                                                        </div>
+                                                    {%endfor%}
                                                 </div>
     
                                             </div>
@@ -128,117 +118,42 @@
                                     </div>
 
                                     <div class="table-responsive resources-table" style="display: none;">
-                                        <div class="remdesivir-table resources-table-container">
-                                            <table class="table">
-                                                <h6 class="text-center">Remdesivir</h6>
-                                                <div class="alert alert-secondary no-resources-alert" role="alert">
-                                                    No resources have been added to this area so far.
-                                                </div>
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Location</th>
-                                                    <th scope="col">Available</th>
-                                                    <th scope="col">Count</th>
-                                                    <th scope="col">Verified</th>
-                                                    <th></th>
-                                                </tr>
-                                                </thead>
-                                                
-                                            </table>
-                                        </div>
+                                        {% for ix in range(services_indices|length) %}
+                                            <div class="{{services_indices[ix]}}-table resources-table-container">
+                                                <table class="table">
+                                                    {%if ix == 2%}
+                                                        <h6 class="text-center">Plasma Donors</h6>
+                                                    {%elif ix == 3%}
+                                                        <h6 class="text-center">Oxygen Cylinders</h6>
+                                                    {%else%}
+                                                        <h6 class="text-center">{{services_indices[ix].replace("-"," ").title()}}</h6>
+                                                    {%endif%}
+                                                    <div class="alert alert-secondary no-resources-alert" role="alert">
+                                                        No resources have been added to this area so far.
+                                                    </div>
+                                                    <thead>
+                                                    <tr>
+                                                        <th scope="col">#</th>
+                                                        <th scope="col">Name</th>
+                                                        <th scope="col">Contact</th>
+                                                        <th scope="col">Location</th>
+                                                        {%if ix == 2%}
+                                                            <th scope="col">Blood Group</th>
+                                                        {%endif%}
+                                                        <th scope="col">Available</th>
+                                                        {%if ix != 4%}
+                                                            <th scope="col">Count</th>
+                                                        {%endif%}
+                                                        <th scope="col">Verified</th>
+                                                        <th></th>
+                                                    </tr>
+                                                    </thead>
+                                                    
+                                                </table>
+                                            </div>
 
-                                        <br><br>
-
-                                        <div class="beds-table resources-table-container">
-                                            <table class="table ">
-                                                <h6 class="text-center">Beds</h6>
-                                                <div class="alert alert-secondary no-resources-alert" role="alert">
-                                                    No resources have been added to this area so far.
-                                                </div>
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Location</th>
-                                                    <th scope="col">Available</th>
-                                                    <th scope="col">Count</th>
-                                                    <th scope="col">Verified</th>
-                                                    <th></th>
-                                                </tr>
-                                                </thead>
-                                            </table>
-                                        </div>
-
-                                        <br><br>
-
-                                        <div class="plasma-table resources-table-container">
-                                            <table class="table ">
-                                                <h6 class="text-center">Plasma Donors</h6>
-                                                <div class="alert alert-secondary no-resources-alert" role="alert">
-                                                    No resources have been added to this area so far.
-                                                </div>
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Location</th>
-                                                    <th scope="col">Blood Group</th>
-                                                    <th scope="col">Available</th>
-                                                    <th scope="col">Count</th>
-                                                    <th scope="col">Verified</th>
-                                                    <th></th>
-                                                </tr>
-                                                </thead>
-                                            </table>
-                                        </div>
-
-                                        <br><br>
-                                        <div class="oxygen-table resources-table-container">
-                                            <table class="table">
-                                                <h6 class="text-center">Oxygen Cylinders</h6>
-                                                <div class="alert alert-secondary no-resources-alert" role="alert">
-                                                    No resources have been added to this area so far.
-                                                </div>
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Location</th>
-                                                    <th scope="col">Available</th>
-                                                    <th scope="col">Count</th>
-                                                    <th scope="col">Verified</th>
-                                                    <th></th>
-                                                </tr>
-                                                </thead>
-                                            </table>
-                                        </div>
-                                        
-                                        <br><br>
-                                        <div class="tiffins-table resources-table-container">
-                                          <table class="table">
-                                                <h6 class="text-center">Tiffins</h6>
-                                                <div class="alert alert-secondary no-resources-alert" role="alert">
-                                                    No resources have been added to this area so far.
-                                                </div>
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">Contact</th>
-                                                    <th scope="col">Location</th>
-                                                    <th scope="col">Available</th>
-                                                    <th scope="col">Verified</th>
-                                                    <th></th>
-                                                </tr>
-                                                </thead>
-                                            </table>
-                                        </div>
+                                            <br><br>
+                                        {%endfor%}
                                     </div>
                                 </div>
                             </div>

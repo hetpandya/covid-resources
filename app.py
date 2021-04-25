@@ -17,6 +17,10 @@ except:
 	    states_data = json.load(json_file)
 
 states_data = states_data["states"]
+services_indices = ["remdesivir","hospital-beds","plasma","oxygen","tiffins","fabiflu","private-vehicle","icu-beds"]
+blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
+blood_groups = [group.strip() for group in blood_groups]
+state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
 
 @app.route('/get-city/<id>', methods=["POST"])
 def get_city(id):
@@ -31,7 +35,6 @@ def search_resources():
         state_id = int(data["state_id"])
         resources_query = data["resources"]
         responses = {}
-        services_indices = ["remdesivir","beds","plasma","oxygen","tiffins"]
 
         location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
         
@@ -64,14 +67,10 @@ def updates():
 
 @app.route('/', methods=['GET'])
 def index():
-    state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
-    return render_template("index.html",state_names = state_names)  
+    return render_template("index.html",state_names = state_names,services_indices=services_indices)  
 
 @app.route('/add-data', methods=['GET',"POST"])
 def add_data():
-    blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
-    blood_groups = [group.strip() for group in blood_groups]
-    state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
     if request.method == "POST":
         data = request.get_json()["data"]
         
@@ -120,7 +119,7 @@ def add_data():
         except:
             return "Error",500
         
-    return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups)   
+    return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices = services_indices)   
 
 
 @app.route('/admin/add-data', methods=['GET',"POST"])
@@ -129,10 +128,7 @@ def admin_add_data():
         if not session.get('logged_in'):
             return redirect("/admin/login")          
         else:        
-            blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
-            blood_groups = [group.strip() for group in blood_groups]
-            state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
-            return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups)  
+            return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices=services_indices)  
     elif request.method == "POST":
         data = request.get_json()["data"]
         
@@ -183,10 +179,8 @@ def admin_manage_resource(resource_id):
         if not session.get('logged_in'):
             return redirect("/admin/login") 
         else:
-            blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
-            blood_groups = [group.strip() for group in blood_groups]  
+            
 
-            services_indices = ["remdesivir","beds","plasma","oxygen","tiffins"]
 
             resource = db_session.query(Resources).filter_by(id=resource_id).first()
 
@@ -204,7 +198,7 @@ def admin_manage_resource(resource_id):
 
 
             responses = {
-                        "resource_name":services_indices[resource.resource_type].title(),
+                        "resource_name":services_indices[resource.resource_type].replace("-"," ").title(),
                         "name":name,
                         'contact':contact,
                         "available":resource.available,
@@ -268,11 +262,6 @@ def admin_manage_resource(resource_id):
 @app.route('/manage-resource/<resource_id>', methods=['GET',"POST"])
 def manage_resource(resource_id):
     if request.method == 'GET':
-        blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
-        blood_groups = [group.strip() for group in blood_groups]  
-
-        services_indices = ["remdesivir","beds","plasma","oxygen","tiffins"]
-
         resource = db_session.query(Resources).filter_by(id=resource_id).first()
 
         try:
@@ -288,7 +277,7 @@ def manage_resource(resource_id):
         location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
 
         responses = {
-                    "resource_name":services_indices[resource.resource_type].title(),
+                    "resource_name":services_indices[resource.resource_type].replace("-"," ").title(),
                     "name":name,
                     'contact':contact,
                     "available":resource.available,
@@ -362,8 +351,7 @@ def admin_view_resources(state_id):
             state_id = int(state_id) 
             state_name = states_data[int(state_id) - 1]["name"]
             responses = {}
-            services_indices = ["remdesivir","beds","plasma","oxygen","tiffins"]
-
+            
             for req_res,req_res_name in enumerate(services_indices):
                 response = []
                 for resource in db_session.query(Resources).filter_by(state_id = state_id,
@@ -417,7 +405,6 @@ def admin_home():
     if not session.get('logged_in'):
         return redirect("/admin/login")
     else:
-        state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
         return render_template('admin_home.html',state_names=state_names)
 
 @app.route('/admin/register', methods=['GET',"POST"])

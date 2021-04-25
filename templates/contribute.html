@@ -96,38 +96,20 @@
                                                     <h6>
                                                         Resource:
                                                     </h6>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input service-radio" type="radio" name="service" id="remdesivir-radio" value="0">
-                                                        <label class="form-check-label" for="remdesivir-radio">
-                                                            Remdesivir
-                                                        </label>
-                                                    </div>
-
-                                                    <div class="form-check">
-                                                        <input class="form-check-input service-radio" type="radio" name="service" id="beds-radio" value="1">
-                                                        <label class="form-check-label" for="beds-radio">
-                                                            Beds
-                                                        </label>
-                                                    </div>
-
-                                                    <div class="form-check">
-                                                        <input class="form-check-input service-radio" type="radio" name="service" id="plasma-radio" value="2">
-                                                        <label class="form-check-label" for="plasma-radio">
-                                                            Plasma Donors
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input service-radio" type="radio" name="service" id="oxygen-radio" value="3">
-                                                        <label class="form-check-label" for="oxygen-radio">
-                                                            Oxygen Cylinders
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input service-radio" type="radio" name="service" id="tiffins-radio" value="4">
-                                                        <label class="form-check-label" for="tiffins-radio">
-                                                            Tiffins
-                                                        </label>
-                                                    </div>
+                                                    {% for ix in range(services_indices|length) %}
+                                                        <div class="form-check">
+                                                            <input class="form-check-input service-radio" type="radio" name="service" id="{{services_indices[ix]}}-radio" value="{{ix}}">
+                                                            <label class="form-check-label" for="{{services_indices[ix]}}-radio">
+                                                                {%if ix == 2%}
+                                                                    Plasma Donors
+                                                                {%elif ix == 3%}
+                                                                    Oxygen Cylinders
+                                                                {%else%}
+                                                                   {{services_indices[ix].replace("-"," ").title()}}
+                                                                {%endif%}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
 
                                                     <div class="blood-group-container">
                                                         <br>
