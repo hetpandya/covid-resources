@@ -17,7 +17,7 @@ except:
 	    states_data = json.load(json_file)
 
 states_data = states_data["states"]
-services_indices = ["remdesivir","hospital-beds","plasma","oxygen","tiffins","fabiflu","private-vehicle","icu-beds"]
+services_indices = ["remdesivir","hospital-beds","plasma","oxygen","tiffins","fabiflu","private-vehicle","icu-beds","tocilizumab"]
 blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
 blood_groups = [group.strip() for group in blood_groups]
 state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
@@ -73,7 +73,7 @@ def index():
 def add_data():
     if request.method == "POST":
         data = request.get_json()["data"]
-        
+        print(data)
         state_id = int(data["states-select"]) 
         city_id = int(data["city-select"])
         name = data["donor-name"]
@@ -95,29 +95,29 @@ def add_data():
         else:
             blood_group = ""
 
-        try:
-            resource = {
-                "resource_type":resource_type,
-                "available":1,
-                'verified':verified,
-                "state_id":state_id,
-                "city_id":city_id,
-                'resource_count':resource_count,
-                "is_approved_by_admin":1,
-                "donor_or_recipient":0}
-            
-            new_resource = Resources(**resource)
-            db_session.add(new_resource)
-            db_session.commit()
-            
-            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
+        # try:
+        resource = {
+            "resource_type":resource_type,
+            "available":1,
+            'verified':verified,
+            "state_id":state_id,
+            "city_id":city_id,
+            'resource_count':resource_count,
+            "is_approved_by_admin":1,
+            "donor_or_recipient":0}
+        
+        new_resource = Resources(**resource)
+        db_session.add(new_resource)
+        db_session.commit()
+        
+        donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
 
-            new_donor = Donors(**donor)
-            db_session.add(new_donor)
-            db_session.commit()
-            return "Success",200
-        except:
-            return "Error",500
+        new_donor = Donors(**donor)
+        db_session.add(new_donor)
+        db_session.commit()
+        return "Success",200
+        # except:
+        #     return "Error",500
         
     return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices = services_indices)   
 
