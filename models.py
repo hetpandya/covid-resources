@@ -14,8 +14,8 @@ except:
     with open(os.path.join(root,"/home/hetpandy/public_html/flask/creds.json")) as json_file:
     	creds = json.load(json_file)
 
-engine = create_engine(f'mysql://{creds["db_user"]}:{creds["db_password"]}@{creds["db_ip"]}/{creds["db_name"]}', echo = True)
-
+# engine = create_engine(f'mysql://{creds["db_user"]}:{creds["db_password"]}@{creds["db_ip"]}/{creds["db_name"]}', echo = True)
+engine = create_engine('sqlite:///covid_resources.db', echo = True,connect_args={"check_same_thread": False})
 meta = MetaData()
 
 con = engine.connect()

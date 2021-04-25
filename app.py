@@ -33,17 +33,29 @@ def search_resources():
         data = request.get_json()
         city_id = int(data["city_id"])
         state_id = int(data["state_id"])
+        other_cities = int(data["other_cities"])
+
         responses = {}
         if len(data["resources"]) > 0:
             req_res = data["resources"][0]
-            location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
             response = []
-            for resource in db_session.query(Resources).filter_by(state_id = state_id,
+
+            if other_cities == 1:
+                db_query = db_session.query(Resources).filter_by(state_id = state_id,
+                                                                resource_type=int(req_res),
+                                                                donor_or_recipient=0,
+                                                                is_approved_by_admin=1).all()
+            else:
+                db_query = db_session.query(Resources).filter_by(state_id = state_id,
                                                                 city_id = city_id,
                                                                 resource_type=int(req_res),
-                                                                donor_or_recipient=0,is_approved_by_admin=1).all():
+                                                                donor_or_recipient=0,is_approved_by_admin=1).all()
+            for resource in db_query:
                 if resource.available_donors != []:
                     donor = resource.available_donors[0]
+
+                    location = states_data[state_id - 1]["districts"][resource.city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+            
                     contact = [contact+"<br>".replace(",","") for contact in donor.contact.split(",")]
                     resp_dict = {"name":donor.name,
                                 "resource_id":resource.id,
@@ -72,7 +84,6 @@ def index():
 def add_data():
     if request.method == "POST":
         data = request.get_json()["data"]
-        print(data)
         state_id = int(data["states-select"]) 
         city_id = int(data["city-select"])
         name = data["donor-name"]

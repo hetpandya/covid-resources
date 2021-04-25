@@ -85,8 +85,14 @@
                                                             </label>
                                                         </div>
                                                     {%endfor%}
-                                                </div>
-    
+                                                    
+                                                    <br>
+                                                    <div class="custom-control custom-checkbox other-cities-container">
+                                                        <input type="checkbox" class="custom-control-input" id="other-cities-checkbox" name="other-cities" value="0">
+                                                        <label class="custom-control-label" for="other-cities-checkbox">Include results from other cities in <span class="current-state-name"></span>?</label>
+                                                    </div>
+
+                                                </div>                                        
                                             </div>
                                         </div>
                                         
@@ -241,9 +247,10 @@
                         "data-live-search":"true"
                     });
                     for (var idx in response) {
-                        $select.append('<option value=' + response[idx].id + '>' + response[idx].name + '</option>');
+                        $select.append('<option data-name='+response[idx].name+' value=' + response[idx].id + '>' + response[idx].name + '</option>');
                     }
                     $select.appendTo('.district-container').selectpicker('refresh');
+                    $(".current-state-name").html($(".states-select :selected")[0].label);
                 },
                 error: function () {
                     $(".error-alert").show();
@@ -259,7 +266,14 @@
             city_id = $(".city-select :selected").val();
             var resources_list = [];
             $(".resources-table-container").hide();
-            
+            var other_cities;
+            if($('#other-cities-checkbox:checked').length>0){
+                other_cities = 1;
+            }
+            else{
+                other_cities = 0;
+            }
+
             var boxes = $('.service-radio:checked');
             if (boxes.length > 0){                
                 $(".searching-alert").show();
@@ -271,40 +285,42 @@
                     'data': JSON.stringify({
                         "state_id":state_id,
                         "city_id":city_id,
-                        "resources":resources_list
+                        "resources":resources_list,
+                        "other_cities":other_cities
                     }),
                     'processData': false,
                     success: function (response) {
                         $(".error-alert").hide();
                         $(".wait-alert").hide();
                         $(".searching-alert").hide();
-                        for (var i = 0; i < boxes.length; i++){
-                            name = boxes[i].id.replace("-radio","");
-                            $("."+name +"-table table tbody").remove();
-                            $("."+name +"-table").show();
-                            tr_content = response[name];
-                            if(tr_content.length > 0)
-                            {
-                                $("."+name +"-table table .no-resources-alert").hide();
-                                var $html_content = $('<tbody/>');
-                                if( name != "plasma"){
-                                    for(var ix = 0; ix < tr_content.length; ix++){
-                                        var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
-                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
-                                    } 
-                                }
-                                else{
-                                    for(var ix = 0; ix < tr_content.length; ix++){
-                                        var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
-                                        $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
-                                    }
-                                }
-                                $html_content.appendTo("."+name +"-table table");
+                        
+                        name = boxes[0].id.replace("-radio","");
+                        
+                        $("."+name +"-table table tbody").remove();
+                        $("."+name +"-table").show();
+                        tr_content = response[name];
+                        if(tr_content.length > 0)
+                        {
+                            $("."+name +"-table table .no-resources-alert").hide();
+                            var $html_content = $('<tbody/>');
+                            if( name != "plasma"){
+                                for(var ix = 0; ix < tr_content.length; ix++){
+                                    var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
+                                } 
                             }
                             else{
-                                $("."+name +"-table .no-resources-alert").show();
+                                for(var ix = 0; ix < tr_content.length; ix++){
+                                    var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
+                                }
                             }
+                            $html_content.appendTo("."+name +"-table table");
                         }
+                        else{
+                            $("."+name +"-table .no-resources-alert").show();
+                        }
+                    
                         $(".resources-table").show();
                         var target = $('.resources-table');
                         if (target.length) {
