@@ -33,18 +33,17 @@ def search_resources():
         data = request.get_json()
         city_id = int(data["city_id"])
         state_id = int(data["state_id"])
-        resources_query = data["resources"]
         responses = {}
-
-        location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
-        
-        for req_res in resources_query:
+        if len(data["resources"]) > 0:
+            req_res = data["resources"][0]
+            location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
             response = []
             for resource in db_session.query(Resources).filter_by(state_id = state_id,
                                                                 city_id = city_id,
                                                                 resource_type=int(req_res),
                                                                 donor_or_recipient=0,is_approved_by_admin=1).all():
-                for donor in resource.available_donors:
+                if resource.available_donors != []:
+                    donor = resource.available_donors[0]
                     contact = [contact+"<br>".replace(",","") for contact in donor.contact.split(",")]
                     resp_dict = {"name":donor.name,
                                 "resource_id":resource.id,
@@ -58,7 +57,7 @@ def search_resources():
                         resp_dict["blood_group"] = donor.blood_group
                     response.append(resp_dict)
             responses[services_indices[int(req_res)]] = response
-    
+            
         return responses,200  
 
 @app.route('/updates', methods=['GET'])
@@ -95,29 +94,29 @@ def add_data():
         else:
             blood_group = ""
 
-        # try:
-        resource = {
-            "resource_type":resource_type,
-            "available":1,
-            'verified':verified,
-            "state_id":state_id,
-            "city_id":city_id,
-            'resource_count':resource_count,
-            "is_approved_by_admin":1,
-            "donor_or_recipient":0}
-        
-        new_resource = Resources(**resource)
-        db_session.add(new_resource)
-        db_session.commit()
-        
-        donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
+        try:
+            resource = {
+                "resource_type":resource_type,
+                "available":1,
+                'verified':verified,
+                "state_id":state_id,
+                "city_id":city_id,
+                'resource_count':resource_count,
+                "is_approved_by_admin":1,
+                "donor_or_recipient":0}
+            
+            new_resource = Resources(**resource)
+            db_session.add(new_resource)
+            db_session.commit()
+            
+            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
 
-        new_donor = Donors(**donor)
-        db_session.add(new_donor)
-        db_session.commit()
-        return "Success",200
-        # except:
-        #     return "Error",500
+            new_donor = Donors(**donor)
+            db_session.add(new_donor)
+            db_session.commit()
+            return "Success",200
+        except:
+            return "Error",500
         
     return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices = services_indices)   
 

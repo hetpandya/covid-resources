@@ -51,11 +51,9 @@
                                 <div class="card-body">
                                     <h3 class="text-center">Select Resource</h3>
                                     <hr>
-                                    <div class="alert alert-primary name-alert" role="alert">
-                                        Please enter your name
-                                    </div>
                                     <div class="form-group row">
                                             <div class="col-lg-10">
+                                                <h6>State:</h6>
                                                 <select class="selectpicker states-select" data-live-search="true">
                                                     {%for ix,state in state_names %}
                                                         <option data-tokens="{{state}}" value="{{ix}}">{{state}}</option>    
@@ -66,16 +64,17 @@
                                                 <br>
                                                 
                                                 <div class="district-container">
-      
+                                                
                                                 </div>
     
                                                 <br>
                                                 
                                                 <div class="services-container">
+                                                    <h6>Resource:</h6>
                                                     {% for ix in range(services_indices|length) %}
-                                                        <div class="custom-control custom-checkbox {{services_indices[ix]}}-container">
-                                                            <input type="checkbox" class="custom-control-input" id="{{services_indices[ix]}}-checkbox" name="{{services_indices[ix]}}" value="{{ix}}">
-                                                            <label class="custom-control-label" for="{{services_indices[ix]}}-checkbox">
+                                                        <div class="form-check">    
+                                                            <input class="form-check-input service-radio" type="radio" name="service" id="{{services_indices[ix]}}-radio" value="{{ix}}">
+                                                            <label class="form-check-label" for="{{services_indices[ix]}}-radio">
                                                                 {%if ix == 2%}
                                                                     Plasma Donors
                                                                 {%elif ix == 3%}
@@ -150,9 +149,9 @@
                                                     </thead>
                                                     
                                                 </table>
+                                                <br><br>
                                             </div>
 
-                                            <br><br>
                                         {%endfor%}
                                     </div>
                                 </div>
@@ -236,7 +235,7 @@
                     $(".resources-table-container").hide();
                     $(".search-btn").show();
                     $(".services-container").show();
-                    $(".district-container").html("");
+                    $(".district-container").html("").html("<h6>City:</h6>");
                     var $select = $('<select/>', {
                         'class':"selectpicker city-select",
                         "data-live-search":"true"
@@ -256,17 +255,15 @@
 
         $(".search-btn").click(function(e){
             e.preventDefault();
-            $(".searching-alert").show();
             state_id = $(".states-select :selected").val();
             city_id = $(".city-select :selected").val();
             var resources_list = [];
             $(".resources-table-container").hide();
             
-            var boxes = $('.custom-control-input:checked');
-            if (boxes.length > 0){
-                for (var i = 0; i < boxes.length; i++){
-                    resources_list.push(boxes[i].value);
-                }
+            var boxes = $('.service-radio:checked');
+            if (boxes.length > 0){                
+                $(".searching-alert").show();
+                resources_list.push(boxes[0].value);
                 $.ajax({
                     type:"POST",
                     url:'/search-resources',
@@ -281,9 +278,8 @@
                         $(".error-alert").hide();
                         $(".wait-alert").hide();
                         $(".searching-alert").hide();
-                                    
                         for (var i = 0; i < boxes.length; i++){
-                            name = boxes[i].name;
+                            name = boxes[i].id.replace("-radio","");
                             $("."+name +"-table table tbody").remove();
                             $("."+name +"-table").show();
                             tr_content = response[name];
@@ -310,6 +306,13 @@
                             }
                         }
                         $(".resources-table").show();
+                        var target = $('.resources-table');
+                        if (target.length) {
+                            $('html,body').animate({
+                                scrollTop: target.offset().top
+                            }, "fast");
+                            return false;
+                        }
                     },
                     error: function () {
                         $(".error-alert").show();
