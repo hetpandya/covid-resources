@@ -878,6 +878,13 @@
                 {
                     "id": "33",
                     "name": "Valsad"
+                },
+                {
+                    "id": "34",
+                    "name": "Dhoraji"
+                },                {
+                    "id": "35",
+                    "name": "Modasa"
                 }
             ],
               "coordinates" :[
@@ -2252,6 +2259,10 @@
                 {
                     "id": "30",
                     "name": "Sundargarh"
+                },
+                {
+                    "id": "31",
+                    "name": "Bhubaneswar"
                 }
             ],
              "coordinates" :[

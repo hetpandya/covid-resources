@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, SmallInteger, Boolean,ForeignKey,BigInteger
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, SmallInteger, Boolean,ForeignKey,BigInteger,DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import select
 from sqlalchemy.orm import relationship
@@ -14,8 +14,7 @@ except:
     with open(os.path.join(root,"/home/hetpandy/public_html/flask/creds.json")) as json_file:
     	creds = json.load(json_file)
 
-# engine = create_engine(f'mysql://{creds["db_user"]}:{creds["db_password"]}@{creds["db_ip"]}/{creds["db_name"]}', echo = True)
-engine = create_engine('sqlite:///covid_resources.db', echo = True,connect_args={"check_same_thread": False})
+engine = create_engine(f'mysql://{creds["db_user"]}:{creds["db_password"]}@{creds["db_ip"]}/{creds["db_name"]}', echo = True)
 meta = MetaData()
 
 con = engine.connect()
@@ -35,6 +34,8 @@ class Resources(Base):
     resource_count = Column(SmallInteger)
     donor_or_recipient = Column(Boolean)
     media_id = Column(Integer,ForeignKey('media.id'))
+    last_updated = Column(DateTime)
+    
 
 class Donors(Base):
     __tablename__ = 'donors'
@@ -69,6 +70,7 @@ class InAppropriateResources(Base):
     
     id = Column(Integer, primary_key = True)
     resource_id = Column(Integer,ForeignKey('resources.id'))
+    comment = Column(String)
 
 
 class User(Base):

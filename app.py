@@ -3,6 +3,8 @@ from flask import Flask,render_template,session,redirect
 from flask import request,jsonify
 import base64
 import json
+from datetime import datetime
+from pytz import timezone
 from models import *
 
 app = Flask(__name__)
@@ -17,10 +19,11 @@ except:
 	    states_data = json.load(json_file)
 
 states_data = states_data["states"]
-services_indices = ["remdesivir","hospital-beds","plasma","oxygen","tiffins","fabiflu","private-vehicle","icu-beds","tocilizumab"]
+services_indices = ["remdesivir","hospital-beds","plasma","oxygen","tiffins","fabiflu","private-vehicle","icu-beds","tocilizumab","ventilators"]
 blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
 blood_groups = [group.strip() for group in blood_groups]
 state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
+date_format = '%d-%m-%Y'
 
 @app.route('/get-city/<id>', methods=["POST"])
 def get_city(id):
@@ -63,13 +66,13 @@ def search_resources():
                                 'location':location,
                                 "available":"Yes" if resource.available else "No",
                                 "count":resource.resource_count,
-                                "verified":"Yes" if resource.verified else "No"}
+                                "verified":"Yes" if resource.verified else "No",
+                                "last_updated":resource.last_updated.strftime(date_format) if resource.last_updated else ""}
 
                     if int(req_res) == 2:
                         resp_dict["blood_group"] = donor.blood_group
                     response.append(resp_dict)
             responses[services_indices[int(req_res)]] = response
-            
         return responses,200  
 
 @app.route('/updates', methods=['GET'])
@@ -89,7 +92,6 @@ def add_data():
         name = data["donor-name"]
         contact = data["donor-contact"]
         resource_type = int(data["service"])
-                
         if data.get("resource-count"):
             resource_count = int(data['resource-count'])
         else:
@@ -105,6 +107,19 @@ def add_data():
         else:
             blood_group = ""
 
+        last_updated = ""
+        if data.get("update-verification-check"):
+            if int(data["update-verification-check"]) == 1:
+                last_updated = datetime.now(timezone('Asia/Kolkata'))
+            elif int(data["update-verification-check"]) == 0:
+                if data.get("last-updated"):
+                    date_str = data["last-updated"]
+                    last_updated = datetime.strptime(date_str,date_format).astimezone(timezone('Asia/Kolkata'))
+                else:
+                    last_updated = ""
+        else:
+            last_updated = ""
+                
         try:
             resource = {
                 "resource_type":resource_type,
@@ -114,7 +129,8 @@ def add_data():
                 "city_id":city_id,
                 'resource_count':resource_count,
                 "is_approved_by_admin":1,
-                "donor_or_recipient":0}
+                "donor_or_recipient":0,
+                'last_updated' : last_updated}
             
             new_resource = Resources(**resource)
             db_session.add(new_resource)
@@ -141,14 +157,17 @@ def admin_add_data():
             return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices=services_indices)  
     elif request.method == "POST":
         data = request.get_json()["data"]
-        
         state_id = int(data["states-select"]) 
         city_id = int(data["city-select"])
         name = data["donor-name"]
         contact = data["donor-contact"]
         resource_type = int(data["service"])
-        resource_count = int(data['resource-count'])
-        
+                
+        if data.get("resource-count"):
+            resource_count = int(data['resource-count'])
+        else:
+            resource_count = ""
+
         if data.get("verification-check"):
             verified = int(data["verification-check"])
         else:
@@ -159,6 +178,18 @@ def admin_add_data():
         else:
             blood_group = ""
 
+        if data.get("update-verification-check"):
+            if int(data["update-verification-check"]) == 1:
+                last_updated = datetime.now(timezone('Asia/Kolkata'))
+            elif int(data["update-verification-check"]) == 0:
+                if data.get("last-updated"):
+                    date_str = data["last-updated"]
+                    last_updated = datetime.strptime(date_str,date_format).astimezone(timezone('Asia/Kolkata'))
+                else:
+                    last_updated = ""
+        else:
+            last_updated = ""
+
         try:
             resource = {
                 "resource_type":resource_type,
@@ -168,7 +199,8 @@ def admin_add_data():
                 "city_id":city_id,
                 'resource_count':resource_count,
                 "is_approved_by_admin":1,
-                "donor_or_recipient":0}
+                "donor_or_recipient":0,
+                'last_updated' : last_updated}
             
             new_resource = Resources(**resource)
             db_session.add(new_resource)
@@ -189,9 +221,6 @@ def admin_manage_resource(resource_id):
         if not session.get('logged_in'):
             return redirect("/admin/login") 
         else:
-            
-
-
             resource = db_session.query(Resources).filter_by(id=resource_id).first()
 
             try:
@@ -220,12 +249,22 @@ def admin_manage_resource(resource_id):
 
             if int(resource.resource_type) == 2:
                 try:
-                    responses["blood_group"] = resource.available_donors[0].blood_group
-                    responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+                    if resource.available_donors != []:
+                        responses["blood_group"] = resource.available_donors[0].blood_group
+                        responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+                    else:
+                        responses["blood_group"] = ""
+                        responses["blood_group_index"] = ""
                 except:
-                    responses["blood_group"] = resource.resource_recipients[0].blood_group
-                    responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
-                    
+                    if resource.resource_recipients != []:
+                        responses["blood_group"] = resource.resource_recipients[0].blood_group
+                        responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
+                    else:
+                        responses["blood_group"] = ""
+                        responses["blood_group_index"] = ""
+            if resource.last_updated:
+                responses["last_updated"] = resource.last_updated.strftime(date_format)
+                
             return render_template("update_resource.html",responses = responses,blood_groups = blood_groups)  
 
     elif request.method == "POST":
@@ -239,6 +278,7 @@ def admin_manage_resource(resource_id):
         admin_approved = int(data["admin-verification-check"])
         verified = int(data["verification-check"]) if data.get("verification-check") else 0
         blood_group = data["blood-group"] if data.get("blood-group") else ""
+        last_updated = datetime.strptime(data["last-updated"],date_format).astimezone(timezone('Asia/Kolkata')) if data.get("last-updated") else ""
 
         try:
             current_res = db_session.query(Resources).filter_by(id=resource_id).first()
@@ -248,7 +288,8 @@ def admin_manage_resource(resource_id):
                 'verified':verified,
                 'resource_count':resource_count,
                 "is_approved_by_admin":admin_approved,
-                "donor_or_recipient":current_res.donor_or_recipient}
+                "donor_or_recipient":current_res.donor_or_recipient,
+                "last_updated":last_updated}
             
             new_resource.update(resource_data)
             db_session.commit()
@@ -299,11 +340,22 @@ def manage_resource(resource_id):
 
         if int(resource.resource_type) == 2:
             try:
-                responses["blood_group"] = resource.available_donors[0].blood_group
-                responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+                if resource.available_donors != []:
+                    responses["blood_group"] = resource.available_donors[0].blood_group
+                    responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+                else:
+                    responses["blood_group"] = ""
+                    responses["blood_group_index"] = ""
             except:
-                responses["blood_group"] = resource.resource_recipients[0].blood_group
-                responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
+                if resource.resource_recipients != []:
+                    responses["blood_group"] = resource.resource_recipients[0].blood_group
+                    responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
+                else:
+                    responses["blood_group"] = ""
+                    responses["blood_group_index"] = ""
+        
+        if resource.last_updated:
+            responses["last_updated"] = resource.last_updated.strftime(date_format)
                 
         return render_template("update_resource.html",responses = responses,blood_groups = blood_groups)  
 
@@ -312,7 +364,7 @@ def manage_resource(resource_id):
         
         name = data["donor-name"]
         contact = data["donor-contact"]
-        resource_count = int(data['resource-count'])
+        resource_count = int(data['resource-count']) if data.get('resource-count') else ""
         available = int(data["available-check"])
         
         if data.get("verification-check"):
@@ -324,6 +376,9 @@ def manage_resource(resource_id):
             blood_group = data["blood-group"]
         else:
             blood_group = ""
+
+        last_updated = datetime.strptime(data["last-updated"],date_format).astimezone(timezone('Asia/Kolkata')) if data.get("last-updated") else ""
+
         try:
             current_res = db_session.query(Resources).filter_by(id=resource_id).first()
             new_resource = db_session.query(Resources).filter_by(id=resource_id)
@@ -331,7 +386,9 @@ def manage_resource(resource_id):
             resource_data = {"available":available,
                 'verified':verified,
                 'resource_count':resource_count,
-                "donor_or_recipient":current_res.donor_or_recipient}
+                "donor_or_recipient":current_res.donor_or_recipient,
+                "last_updated":last_updated
+                }
             
             new_resource.update(resource_data)
             db_session.commit()

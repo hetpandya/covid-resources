@@ -150,6 +150,7 @@
                                                             <th scope="col">Count</th>
                                                         {%endif%}
                                                         <th scope="col">Verified</th>
+                                                        <th scope="col">Last Updated</th>
                                                         <th></th>
                                                     </tr>
                                                     </thead>
@@ -306,13 +307,13 @@
                             if( name != "plasma"){
                                 for(var ix = 0; ix < tr_content.length; ix++){
                                     var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
-                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
+                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td><td>"+tr_content[ix].last_updated+"</td>"+manage_button+"</tr>");
                                 } 
                             }
                             else{
                                 for(var ix = 0; ix < tr_content.length; ix++){
                                     var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
-                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td>"+manage_button+"</tr>");
+                                    $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td><td>"+tr_content[ix].last_updated+"</td>"+manage_button+"</tr>");
                                 }
                             }
                             $html_content.appendTo("."+name +"-table table");
