@@ -79,6 +79,8 @@
                                                                     Plasma Donors
                                                                 {%elif ix == 3%}
                                                                     Oxygen Cylinders
+                                                                {%elif ix == 6%}
+                                                                        Private Vehicle/Ambulance
                                                                 {%else%}
                                                                    {{services_indices[ix].replace("-"," ").title()}}
                                                                 {%endif%}
@@ -130,6 +132,8 @@
                                                         <h6 class="text-center">Plasma Donors</h6>
                                                     {%elif ix == 3%}
                                                         <h6 class="text-center">Oxygen Cylinders</h6>
+                                                    {%elif ix == 6%}
+                                                        <h6 class="text-center">Private Vehicle/Ambulance</h6>
                                                     {%else%}
                                                         <h6 class="text-center">{{services_indices[ix].replace("-"," ").title()}}</h6>
                                                     {%endif%}
