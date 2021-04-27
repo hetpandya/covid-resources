@@ -60,7 +60,10 @@ def search_resources():
                     location = states_data[state_id - 1]["districts"][resource.city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
             
                     contact = [contact+"<br>".replace(",","") for contact in donor.contact.split(",")]
-                    resp_dict = {"name":donor.name,
+                    address = f"<br><b>Address:</b> {donor.address.strip()}" if donor.address != "" else ""
+                    additional_information = f"<br><b>Additional Information:</b> {resource.additional_information}" if resource.additional_information != "" else ""
+                    
+                    resp_dict = {"name":donor.name + address + additional_information,
                                 "resource_id":resource.id,
                                 'contact':contact,
                                 'location':location,
@@ -92,6 +95,9 @@ def add_data():
         name = data["donor-name"]
         contact = data["donor-contact"]
         resource_type = int(data["service"])
+        address = data["resource-address"].capitalize()
+        additional_information = data["resource-info"].capitalize()
+        
         if data.get("resource-count"):
             resource_count = int(data['resource-count'])
         else:
@@ -130,13 +136,14 @@ def add_data():
                 'resource_count':resource_count,
                 "is_approved_by_admin":1,
                 "donor_or_recipient":0,
+                "additional_information":additional_information,
                 'last_updated' : last_updated}
             
             new_resource = Resources(**resource)
             db_session.add(new_resource)
             db_session.commit()
             
-            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
+            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id,"address":address}
 
             new_donor = Donors(**donor)
             db_session.add(new_donor)
@@ -244,24 +251,25 @@ def admin_manage_resource(resource_id):
                         "count":resource.resource_count,
                         "location":location,
                         "verified":resource.verified,
+                        "additional_information":resource.additional_information,
                         "is_approved_by_admin":resource.is_approved_by_admin,
                         "resource_id":resource.id}
 
-            if int(resource.resource_type) == 2:
-                try:
-                    if resource.available_donors != []:
+            try:
+                if resource.available_donors != []:
+                    responses["address"] = resource.available_donors[0].address
+                    if int(resource.resource_type) == 2:
                         responses["blood_group"] = resource.available_donors[0].blood_group
                         responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
-                    else:
-                        responses["blood_group"] = ""
-                        responses["blood_group_index"] = ""
-                except:
-                    if resource.resource_recipients != []:
-                        responses["blood_group"] = resource.resource_recipients[0].blood_group
+                else:
+                    responses["blood_group"] = ""
+                    responses["blood_group_index"] = ""
+            except:
+                if resource.resource_recipients != []:
+                    responses["blood_group"] = resource.resource_recipients[0].blood_group
+                    if int(resource.resource_type) == 2:
+                        responses["address"] = resource.resource_recipients[0].address
                         responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
-                    else:
-                        responses["blood_group"] = ""
-                        responses["blood_group_index"] = ""
             if resource.last_updated:
                 responses["last_updated"] = resource.last_updated.strftime(date_format)
                 
@@ -279,6 +287,8 @@ def admin_manage_resource(resource_id):
         verified = int(data["verification-check"]) if data.get("verification-check") else 0
         blood_group = data["blood-group"] if data.get("blood-group") else ""
         last_updated = datetime.strptime(data["last-updated"],date_format).astimezone(timezone('Asia/Kolkata')) if data.get("last-updated") else ""
+        address = data["resource-address"].capitalize()
+        additional_information = data["resource-info"].capitalize()
 
         try:
             current_res = db_session.query(Resources).filter_by(id=resource_id).first()
@@ -287,6 +297,7 @@ def admin_manage_resource(resource_id):
             resource_data = {"available":available,
                 'verified':verified,
                 'resource_count':resource_count,
+                "additional_information":additional_information,
                 "is_approved_by_admin":admin_approved,
                 "donor_or_recipient":current_res.donor_or_recipient,
                 "last_updated":last_updated}
@@ -295,12 +306,12 @@ def admin_manage_resource(resource_id):
             db_session.commit()
             
             if current_res.available_donors != []:
-                person = {"name":name,"contact":contact,"blood_group":blood_group}
+                person = {"name":name,"contact":contact,"blood_group":blood_group,"address":address}
                 new_person = db_session.query(Donors).filter_by(id=current_res.available_donors[0].id)
                 new_person.update(person)
                 db_session.commit()
             else:
-                person = {"name":name,"contact":contact,"blood_group":blood_group}
+                person = {"name":name,"contact":contact,"blood_group":blood_group,"address":address}
                 new_person = db_session.query(Recipients).filter_by(id=current_res.resource_recipients[0].id)
                 new_person.update(person)
                 db_session.commit()
@@ -335,25 +346,29 @@ def manage_resource(resource_id):
                     "count":resource.resource_count,
                     "location":location,
                     "verified":resource.verified,
+                    "additional_information":resource.additional_information,
                     "is_approved_by_admin":resource.is_approved_by_admin,
                     "resource_id":resource.id}
-
-        if int(resource.resource_type) == 2:
-            try:
-                if resource.available_donors != []:
+        
+        try:
+            if resource.available_donors != []:
+                responses["address"] = resource.available_donors[0].address
+                if int(resource.resource_type) == 2:
                     responses["blood_group"] = resource.available_donors[0].blood_group
                     responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
-                else:
-                    responses["blood_group"] = ""
-                    responses["blood_group_index"] = ""
-            except:
-                if resource.resource_recipients != []:
-                    responses["blood_group"] = resource.resource_recipients[0].blood_group
+            else:
+                responses["blood_group"] = ""
+                responses["blood_group_index"] = ""
+        except:
+            if resource.resource_recipients != []:
+                responses["blood_group"] = resource.resource_recipients[0].blood_group
+                if int(resource.resource_type) == 2:
+                    responses["address"] = resource.resource_recipients[0].address
                     responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
-                else:
-                    responses["blood_group"] = ""
-                    responses["blood_group_index"] = ""
-        
+            else:
+                responses["blood_group"] = ""
+                responses["blood_group_index"] = ""
+    
         if resource.last_updated:
             responses["last_updated"] = resource.last_updated.strftime(date_format)
                 
@@ -366,6 +381,8 @@ def manage_resource(resource_id):
         contact = data["donor-contact"]
         resource_count = int(data['resource-count']) if data.get('resource-count') else ""
         available = int(data["available-check"])
+        address = data["resource-address"].capitalize()
+        additional_information = data["resource-info"].capitalize()
         
         if data.get("verification-check"):
             verified = int(data["verification-check"])
@@ -387,19 +404,20 @@ def manage_resource(resource_id):
                 'verified':verified,
                 'resource_count':resource_count,
                 "donor_or_recipient":current_res.donor_or_recipient,
-                "last_updated":last_updated
+                "last_updated":last_updated,
+                "additional_information":additional_information
                 }
             
             new_resource.update(resource_data)
             db_session.commit()
             
             if current_res.available_donors != []:
-                person = {"name":name,"contact":contact,"blood_group":blood_group}
+                person = {"name":name,"contact":contact,"blood_group":blood_group,"address":address}
                 new_person = db_session.query(Donors).filter_by(id=current_res.available_donors[0].id)
                 new_person.update(person)
                 db_session.commit()
             else:
-                person = {"name":name,"contact":contact,"blood_group":blood_group}
+                person = {"name":name,"contact":contact,"blood_group":blood_group,"address":address}
                 new_person = db_session.query(Recipients).filter_by(id=current_res.resource_recipients[0].id)
                 new_person.update(person)
                 db_session.commit()
@@ -409,40 +427,46 @@ def manage_resource(resource_id):
             return "Error",500
 
 
-@app.route('/admin/view-resources/<state_id>', methods=['GET',"POST"])
-def admin_view_resources(state_id):
+@app.route('/admin/view-resources/<state_id>/<city_id>/<resource_type>', methods=['GET',"POST"])
+def admin_view_resources(state_id,city_id,resource_type):
     if request.method == 'GET':
         if not session.get('logged_in'):
             return redirect("/admin/login")          
         else:       
             state_id = int(state_id) 
+            city_id = int(city_id)
+            resource_type = int(resource_type)
             state_name = states_data[int(state_id) - 1]["name"]
             responses = {}
+            response = []
+            req_res_name = services_indices[resource_type]
             
-            for req_res,req_res_name in enumerate(services_indices):
-                response = []
-                for resource in db_session.query(Resources).filter_by(state_id = state_id,
-                                                                    resource_type=int(req_res),
-                                                                    donor_or_recipient=0).all():
-                    for donor in resource.available_donors:
-                        contact = donor.contact.replace(",","\n")
-                        city_id = resource.city_id
-                        location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+            for resource in db_session.query(Resources).filter_by(state_id = state_id,
+                                                                city_id = city_id,
+                                                                resource_type=resource_type,
+                                                                donor_or_recipient=0).all():
+                for donor in resource.available_donors:
+                    contact = donor.contact.replace(",","\n")
+                    city_id = resource.city_id
+                    location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+                    address = f"\n\nAddress: {donor.address.strip()}" if donor.address and donor.address != "" else ""
+                    additional_information = f"\n\nAdditional Information: {resource.additional_information}" if resource.additional_information and resource.additional_information != "" else ""
+                    
+                    resp_dict = {"name":donor.name + address + additional_information,
+                                        'contact':contact,
+                                        'location':location,
+                                        "available":"Yes" if resource.available else "No",
+                                        "donor_or_recipient":"Recipient" if resource.donor_or_recipient else "Donor",
+                                        "count":resource.resource_count,
+                                        "verified":"Yes" if resource.verified else "No",
+                                        "is_approved_by_admin":"Yes" if resource.is_approved_by_admin else "No",
+                                        "resource_id":resource.id}
 
-                        resp_dict = {"name":donor.name,
-                                            'contact':contact,
-                                            'location':location,
-                                            "available":"Yes" if resource.available else "No",
-                                            "donor_or_recipient":"Recipient" if resource.donor_or_recipient else "Donor",
-                                            "count":resource.resource_count,
-                                            "verified":"Yes" if resource.verified else "No",
-                                            "is_approved_by_admin":"Yes" if resource.is_approved_by_admin else "No",
-                                            "resource_id":resource.id}
-
-                        if int(req_res) == 2:
-                            resp_dict["blood_group"] = donor.blood_group
-                        response.append(resp_dict)
-                responses[req_res_name] = response
+                    if int(resource_type) == 2:
+                        resp_dict["blood_group"] = donor.blood_group
+                    response.append(resp_dict)
+            
+            responses[req_res_name] = response
             return render_template("view_resource.html",state_name = state_name,responses=responses)  
 
     
@@ -472,7 +496,7 @@ def admin_home():
     if not session.get('logged_in'):
         return redirect("/admin/login")
     else:
-        return render_template('admin_home.html',state_names=state_names)
+        return render_template('admin_home.html',state_names=state_names,services_indices=services_indices)
 
 @app.route('/admin/register', methods=['GET',"POST"])
 def admin_reg():

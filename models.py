@@ -35,6 +35,7 @@ class Resources(Base):
     donor_or_recipient = Column(Boolean)
     media_id = Column(Integer,ForeignKey('media.id'))
     last_updated = Column(DateTime)
+    additional_information = Column(String)
     
 
 class Donors(Base):
@@ -46,6 +47,7 @@ class Donors(Base):
     resources = relationship("Resources",backref ="available_donors")
     contact = Column(String)
     blood_group = Column(String)
+    address = Column(String)
 
 class Recipients(Base):
     __tablename__ = 'recipients'

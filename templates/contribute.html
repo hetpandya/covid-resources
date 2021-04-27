@@ -73,7 +73,6 @@
                                                 
                                                 <br>
                                                 <br>
-
                                                 <br>
                                                 <div class="district-container"></div>
     
@@ -87,6 +86,16 @@
                                                 <h6>Donor Contact:</h6>
                                                 <div class="form-outline">
                                                     <input type="text" id="donor-contact" name="donor-contact" class="form-control" />
+                                                </div>
+
+                                                <div class="info-container">
+                                                    <br>
+                                                    <h6>
+                                                        Additional Contact/Resource Information if any:
+                                                    </h6>
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control" id="resource-info" name="resource-info" rows="3" placeholder="Eg. Oxygen available with beds, Call one day prior to ordering cylinders, Whatsapp only, etc."></textarea>
+                                                    </div>
                                                 </div>
 
                                                 <br>
@@ -132,16 +141,15 @@
                                                         <input class="form-control" name="resource-count" type="number" id="resource-count" />
                                                     </div>
                                                     
-                                                    <!-- <div class="address-container">
+                                                    <div class="address-container">
                                                         <br>
                                                         <h6>
-                                                            Address
+                                                            Address:
                                                         </h6>
                                                         <div class="mb-3">
                                                             <textarea class="form-control" id="resource-address" name="resource-address" rows="3"></textarea>
                                                         </div>
-                                                    </div> -->
-                                                    
+                                                    </div>
 
                                                     <br>
                                                     <h6>
@@ -378,6 +386,8 @@
                             $("#donor-name").val("");
                             $("#donor-contact").val("");
                             $("#resource-count").val("");
+                            $("#resource-address").val("");
+                            $("#resource-info").val("");
                             $(".resources-table").show();
                             $(".error-alert").hide();
                         },
