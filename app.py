@@ -61,7 +61,7 @@ def search_resources():
             
                     contact = [contact+"<br>".replace(",","") for contact in donor.contact.split(",")]
                     address = f"<br><b>Address:</b> {donor.address.strip()}" if donor.address != "" else ""
-                    additional_information = f"<br><b>Additional Information:</b> {resource.additional_information}" if resource.additional_information != "" else ""
+                    additional_information = f"<br><b>Additional Information:</b> {resource.additional_information}" if resource.additional_information and resource.additional_information != "" else ""
                     
                     resp_dict = {"name":donor.name + address + additional_information,
                                 "resource_id":resource.id,
@@ -251,7 +251,7 @@ def admin_manage_resource(resource_id):
                         "count":resource.resource_count,
                         "location":location,
                         "verified":resource.verified,
-                        "additional_information":resource.additional_information,
+                        "additional_information":resource.additional_information if resource.additional_information else "",
                         "is_approved_by_admin":resource.is_approved_by_admin,
                         "resource_id":resource.id}
 
@@ -346,7 +346,7 @@ def manage_resource(resource_id):
                     "count":resource.resource_count,
                     "location":location,
                     "verified":resource.verified,
-                    "additional_information":resource.additional_information,
+                    "additional_information":resource.additional_information if resource.additional_information else "",
                     "is_approved_by_admin":resource.is_approved_by_admin,
                     "resource_id":resource.id}
         
