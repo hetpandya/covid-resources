@@ -73,7 +73,7 @@
                                                     <h6>
                                                         Resource:
                                                     </h6>
-                                                    {% for ix in range(services_indices|length) %}
+                                                    {% for ix in range(1,services_indices|length) %}
                                                         <div class="form-check">
                                                             <input class="form-check-input service-radio" type="radio" name="service" id="{{services_indices[ix]}}-radio" value="{{ix}}">
                                                             <label class="form-check-label" for="{{services_indices[ix]}}-radio">

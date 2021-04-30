@@ -985,6 +985,10 @@
                 {
                     "id": "22",
                     "name": "Yamunanagar"
+                },
+                {
+                    "id": "23",
+                    "name": "Gurugram"
                 }
             ],
              "coordinates" :[
@@ -1280,11 +1284,7 @@
                 },
                 {
                     "id": "4",
-                    "name": "Bengaluru (Bangalore) Rural"
-                },
-                {
-                    "id": "5",
-                    "name": "Bengaluru (Bangalore) Urban"
+                    "name": "Bengaluru (Bangalore)"
                 },
                 {
                     "id": "6",

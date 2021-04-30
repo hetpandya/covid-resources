@@ -58,7 +58,10 @@ class Recipients(Base):
     resources = relationship("Resources",backref ="resource_recipients")
     contact = Column(String)
     blood_group = Column(String)
-
+    address = Column(String)
+    receive_notifications = Column(Boolean)
+    receive_notifications_all_cities = Column(Boolean)
+    
 class Media(Base):
     __tablename__ = 'media'
     
@@ -73,6 +76,14 @@ class InAppropriateResources(Base):
     id = Column(Integer, primary_key = True)
     resource_id = Column(Integer,ForeignKey('resources.id'))
     comment = Column(String)
+
+class Registrations(Base):
+    __tablename__ = 'registrations'
+    
+    id = Column(Integer, primary_key = True)
+    otp = Column(Integer)
+    contact = Column(String)
+    number_verified = Column(Boolean)
 
 
 class User(Base):

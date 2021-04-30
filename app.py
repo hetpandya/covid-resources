@@ -6,6 +6,8 @@ import json
 from datetime import datetime
 from pytz import timezone
 from models import *
+import random
+from twilio.rest import Client
 
 app = Flask(__name__)
 
@@ -24,6 +26,7 @@ blood_groups = "A+, A-, B+, B-, O+, O-, AB+, AB-".split(",")
 blood_groups = [group.strip() for group in blood_groups]
 state_names = [(ix+1,state["name"]) for ix,state in enumerate(states_data)]
 date_format = '%d-%m-%Y'
+twilio_client = Client(creds["twilio_sid"], creds["twilio_token"])
 
 @app.route('/get-city/<id>', methods=["POST"])
 def get_city(id):
@@ -92,11 +95,11 @@ def add_data():
         data = request.get_json()["data"]
         state_id = int(data["states-select"]) 
         city_id = int(data["city-select"])
-        name = data["donor-name"]
-        contact = data["donor-contact"]
+        name = data["donor-name"].strip()
+        contact = data["donor-contact"].strip()
         resource_type = int(data["service"])
-        address = data["resource-address"].capitalize()
-        additional_information = data["resource-info"].capitalize()
+        address = data["resource-address"].strip().capitalize()
+        additional_information = data["resource-info"].strip().capitalize()
         
         if data.get("resource-count"):
             resource_count = int(data['resource-count'])
@@ -148,6 +151,28 @@ def add_data():
             new_donor = Donors(**donor)
             db_session.add(new_donor)
             db_session.commit()
+
+            join_data = db_session.query(Resources, Recipients).filter(Resources.resource_type == resource_type,Recipients.resource_id==Resources.id,Resources.state_id==state_id,Recipients.receive_notifications==1).all()
+
+            message = f"{services_indices[resource_type].replace('-',' ').title()} Resources:\n"
+            message += f"Name:{name} \n{address}".strip()
+            message += f"\nContact:{contact}"
+            if resource_type == 2:
+                message += f"\nBlood group:{blood_group}"
+            verified_msg = "Yes" if verified == 1 else "No"
+            message += f"\nVerified:{verified_msg}"
+            message += f"\nCount:{resource_count}\n" if resource_count != "" else "".strip()
+            message += f"\nOther Info:{additional_information}".strip() if additional_information != "" else "".strip()
+            message += f"\nUpdated: {last_updated.strftime(date_format)}" if last_updated != "" else "".strip()
+            message += "\n-Covid Resources India"
+            
+            for resource,recipient in join_data:
+                if recipient.receive_notifications_all_cities or resource.city_id == city_id:
+                    new_message = twilio_client.messages.create(
+                         body=message,
+                         from_= creds["twilio_number"],
+                         to=f'+91{recipient.contact}'
+                     )
             return "Success",200
         except:
             return "Error",500
@@ -166,9 +191,11 @@ def admin_add_data():
         data = request.get_json()["data"]
         state_id = int(data["states-select"]) 
         city_id = int(data["city-select"])
-        name = data["donor-name"]
-        contact = data["donor-contact"]
+        name = data["donor-name"].strip()
+        contact = data["donor-contact"].strip()
         resource_type = int(data["service"])
+        address = data["resource-address"].strip().capitalize()
+        additional_information = data["resource-info"].strip().capitalize()
                 
         if data.get("resource-count"):
             resource_count = int(data['resource-count'])
@@ -207,13 +234,14 @@ def admin_add_data():
                 'resource_count':resource_count,
                 "is_approved_by_admin":1,
                 "donor_or_recipient":0,
+                "additional_information":additional_information,
                 'last_updated' : last_updated}
             
             new_resource = Resources(**resource)
             db_session.add(new_resource)
             db_session.commit()
             
-            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id}
+            donor = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id,"address":address}
 
             new_donor = Donors(**donor)
             db_session.add(new_donor)
@@ -522,6 +550,153 @@ def admin_reg():
                 return render_template('admin_register.html',message="User already exists")
         except:
             return render_template('admin_register.html',message="There was an error")
+
+@app.route('/register-recipient', methods=['GET',"POST"])
+def register_recipient():
+    if request.method == "POST":
+        data = request.get_json()["data"]
+        state_id = int(data["states-select"]) 
+        city_id = int(data["city-select"])
+        name = data['recipient-name'].strip()
+        contact = data["recipient-contact"].strip()
+        resource_type = int(data["service"])
+        address = data["resource-address"].strip().capitalize()
+        additional_information = data["resource-info"].strip().capitalize()
+        resource_count = int(data["resource-count"]) if data.get("resource-count") else ""
+        receive_notifications = int(data["verification-check"]) if data.get("verification-check") else 0
+        other_cities = int(data["other-cities"]) if data.get("other-cities") else 0
+        if data.get("blood-group"):
+            blood_group = data["blood-group"]
+        else:
+            blood_group = ""
+        
+        last_updated = datetime.now(timezone('Asia/Kolkata'))
+                
+        try:
+            resource = {
+                "resource_type":resource_type,
+                "available":1,
+                'verified':1,
+                "state_id":state_id,
+                "city_id":city_id,
+                'resource_count':resource_count,
+                "is_approved_by_admin":1,
+                "donor_or_recipient":1,
+                "additional_information":additional_information,
+                'last_updated' : last_updated}
+            
+            new_resource = Resources(**resource)
+            db_session.add(new_resource)
+            db_session.commit()
+            
+            recipient = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id,"address":address,"receive_notifications":receive_notifications,"receive_notifications_all_cities":other_cities}
+
+            new_recipient = Recipients(**recipient)
+            db_session.add(new_recipient)
+            db_session.commit()
+
+            new_number = {
+                "contact":contact,
+                "number_verified":1
+            }
+
+            registration = db_session.query(Registrations).filter_by(contact=contact)
+            registration.update(new_number)
+            db_session.commit()
+            return "Success",200
+        except:
+            return "Error",500
+    return render_template("register_recipient.html",state_names = state_names,services_indices=services_indices,blood_groups = blood_groups)   
+
+@app.route('/unsubscribe-recipient', methods=['GET',"POST"])
+def unsubscribe_recipient():
+    if request.method == "POST":
+        data = request.get_json()["data"]
+        contact = data["recipient-contact"]
+        try:
+            new_number = {
+                    "contact":contact,
+                    "receive_notifications":0
+                }
+
+            recipient = db_session.query(Recipients).filter_by(contact=contact)
+            recipient.update(new_number)
+            db_session.commit()
+            return "Success",200
+        except:
+            return "Error",500
+    return render_template("unsubscribe_recipient.html")   
+
+
+@app.route('/send-otp', methods=["POST"])
+def send_otp():
+    otp = random.randint(1000,9999)
+    number = request.form['recipient_contact']
+    method = request.form['method']
+    try:
+        registration = db_session.query(Registrations).filter_by(contact=number).first()
+        if registration is None:
+            new_number = {
+                "otp":otp,
+                "contact":number,
+                "number_verified":0
+            }
+            new_number = Registrations(**new_number)
+            db_session.add(new_number)
+            db_session.commit()
+
+            message = twilio_client.messages \
+                    .create(
+                         body=f"Your covid-resources verification code is {otp}",
+                         from_= creds["twilio_number"],
+                         to=f'+91{number}'
+                     )
+
+            return "2",200
+        else:
+            if registration.number_verified and method == "subscribe":
+                return "1",200
+            else:
+                if method == "subscribe":
+                    new_number = {
+                        "otp":otp,
+                        "contact":number,
+                        "number_verified":0
+                    }
+                else:
+                    new_number = {
+                        "otp":otp,
+                        "contact":number
+                    }
+                contact = db_session.query(Registrations).filter_by(contact=number)
+                contact.update(new_number)
+                db_session.commit()
+
+                message = twilio_client.messages \
+                    .create(
+                         body=f"Your covid-resources verification code is {otp}",
+                         from_= creds["twilio_number"],
+                         to=f'+91{number}'
+                     )
+                return "2",200
+    except:
+        return "Error",200
+
+@app.route('/verify-otp', methods=["POST"])
+def verify_otp():
+    number = request.form['recipient_contact']
+    otp = request.form['otp']
+    try:
+        resource = db_session.query(Registrations).filter_by(contact=number).first()
+        if resource is not None:
+            if resource.otp == int(otp):
+                return "1",200
+            else:
+                return "0",200
+        else:
+            return "Error",500  
+    except:
+        return "Error",500
 
 @app.route("/admin/logout")
 def logout():
