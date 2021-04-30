@@ -636,24 +636,29 @@ def send_otp():
     try:
         registration = db_session.query(Registrations).filter_by(contact=number).first()
         if registration is None:
-            new_number = {
+            print("dsds")
+            if method == "subscribe":
+                new_number = {
                 "otp":otp,
                 "contact":number,
                 "number_verified":0
-            }
-            new_number = Registrations(**new_number)
-            db_session.add(new_number)
-            db_session.commit()
+                }
+                new_number = Registrations(**new_number)
+                db_session.add(new_number)
+                db_session.commit()
 
-            message = twilio_client.messages \
-                    .create(
-                         body=f"Your covid-resources verification code is {otp}",
-                         from_= creds["twilio_number"],
-                         to=f'+91{number}'
-                     )
+                message = twilio_client.messages \
+                        .create(
+                            body=f"Your covid-resources verification code is {otp}",
+                            from_= creds["twilio_number"],
+                            to=f'+91{number}'
+                        )
 
-            return "2",200
+                return "2",200
+            else:
+                return "1",200
         else:
+            print("here")
             if registration.number_verified and method == "subscribe":
                 return "1",200
             else:
