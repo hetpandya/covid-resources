@@ -100,7 +100,8 @@ def add_data():
         resource_type = int(data["service"])
         address = data["resource-address"].strip().capitalize()
         additional_information = data["resource-info"].strip().capitalize()
-        
+        location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+   
         if data.get("resource-count"):
             resource_count = int(data['resource-count'])
         else:
@@ -155,7 +156,7 @@ def add_data():
             join_data = db_session.query(Resources, Recipients).filter(Resources.resource_type == resource_type,Recipients.resource_id==Resources.id,Resources.state_id==state_id,Recipients.receive_notifications==1).all()
 
             message = f"{services_indices[resource_type].replace('-',' ').title()} Resources:\n"
-            message += f"Name:{name} \n{address}".strip()
+            message += f"Name:{name} \n{address}({location})".strip()
             message += f"\nContact:{contact}"
             if resource_type == 2:
                 message += f"\nBlood group:{blood_group}"
@@ -636,7 +637,6 @@ def send_otp():
     try:
         registration = db_session.query(Registrations).filter_by(contact=number).first()
         if registration is None:
-            print("dsds")
             if method == "subscribe":
                 new_number = {
                 "otp":otp,
@@ -658,7 +658,6 @@ def send_otp():
             else:
                 return "1",200
         else:
-            print("here")
             if registration.number_verified and method == "subscribe":
                 return "1",200
             else:
