@@ -564,7 +564,8 @@ def register_recipient():
         address = data["resource-address"].strip().capitalize()
         additional_information = data["resource-info"].strip().capitalize()
         resource_count = int(data["resource-count"]) if data.get("resource-count") else ""
-        receive_notifications = int(data["verification-check"]) if data.get("verification-check") else 0
+        # receive_notifications = int(data["verification-check"]) if data.get("verification-check") else 0
+        receive_notifications = 1
         other_cities = int(data["other-cities"]) if data.get("other-cities") else 0
         if data.get("blood-group"):
             blood_group = data["blood-group"]
