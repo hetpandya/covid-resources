@@ -85,6 +85,13 @@ class Registrations(Base):
     contact = Column(String)
     number_verified = Column(Boolean)
 
+class UserRegistrations(Base):
+    __tablename__ = 'user_registration'
+    
+    id = Column(Integer, primary_key = True)
+    otp = Column(Integer)
+    username = Column(String)
+
 
 class User(Base):
     __tablename__ = 'user'
@@ -92,6 +99,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True)
     password = Column(String(80))
+    number_verified = Column(Boolean)
+    contact = Column(String)
 
 Session = sessionmaker(bind = engine)
 db_session = Session()

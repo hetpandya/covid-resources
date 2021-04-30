@@ -187,7 +187,11 @@ def admin_add_data():
         if not session.get('logged_in'):
             return redirect("/admin/login")          
         else:        
-            return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices=services_indices)  
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                return render_template("contribute.html",state_names = state_names,blood_groups=blood_groups,services_indices=services_indices)  
+            else:
+                return redirect("/admin/verify")
     elif request.method == "POST":
         data = request.get_json()["data"]
         state_id = int(data["states-select"]) 
@@ -257,53 +261,57 @@ def admin_manage_resource(resource_id):
         if not session.get('logged_in'):
             return redirect("/admin/login") 
         else:
-            resource = db_session.query(Resources).filter_by(id=resource_id).first()
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                resource = db_session.query(Resources).filter_by(id=resource_id).first()
 
-            try:
-                name = resource.available_donors[0].name
-                contact = resource.available_donors[0].contact
-            except:
-                name = resource.resource_recipients[0].name
-                contact =  resource.resource_recipients[0].contact
-            
-            state_id = resource.state_id
-            city_id = resource.city_id
-
-            location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
-
-
-            responses = {
-                        "resource_name":services_indices[resource.resource_type].replace("-"," ").title(),
-                        "name":name,
-                        'contact':contact,
-                        "available":resource.available,
-                        "count":resource.resource_count,
-                        "location":location,
-                        "verified":resource.verified,
-                        "additional_information":resource.additional_information if resource.additional_information else "",
-                        "is_approved_by_admin":resource.is_approved_by_admin,
-                        "resource_id":resource.id}
-
-            try:
-                if resource.available_donors != []:
-                    responses["address"] = resource.available_donors[0].address
-                    if int(resource.resource_type) == 2:
-                        responses["blood_group"] = resource.available_donors[0].blood_group
-                        responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
-                else:
-                    responses["blood_group"] = ""
-                    responses["blood_group_index"] = ""
-            except:
-                if resource.resource_recipients != []:
-                    responses["blood_group"] = resource.resource_recipients[0].blood_group
-                    if int(resource.resource_type) == 2:
-                        responses["address"] = resource.resource_recipients[0].address
-                        responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
-            if resource.last_updated:
-                responses["last_updated"] = resource.last_updated.strftime(date_format)
+                try:
+                    name = resource.available_donors[0].name
+                    contact = resource.available_donors[0].contact
+                except:
+                    name = resource.resource_recipients[0].name
+                    contact =  resource.resource_recipients[0].contact
                 
-            return render_template("update_resource.html",responses = responses,blood_groups = blood_groups)  
+                state_id = resource.state_id
+                city_id = resource.city_id
 
+                location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+
+
+                responses = {
+                            "resource_name":services_indices[resource.resource_type].replace("-"," ").title(),
+                            "name":name,
+                            'contact':contact,
+                            "available":resource.available,
+                            "count":resource.resource_count,
+                            "location":location,
+                            "verified":resource.verified,
+                            "additional_information":resource.additional_information if resource.additional_information else "",
+                            "is_approved_by_admin":resource.is_approved_by_admin,
+                            "resource_id":resource.id}
+
+                try:
+                    if resource.available_donors != []:
+                        responses["address"] = resource.available_donors[0].address
+                        if int(resource.resource_type) == 2:
+                            responses["blood_group"] = resource.available_donors[0].blood_group
+                            responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+                    else:
+                        responses["blood_group"] = ""
+                        responses["blood_group_index"] = ""
+                except:
+                    if resource.resource_recipients != []:
+                        responses["blood_group"] = resource.resource_recipients[0].blood_group
+                        if int(resource.resource_type) == 2:
+                            responses["address"] = resource.resource_recipients[0].address
+                            responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
+                if resource.last_updated:
+                    responses["last_updated"] = resource.last_updated.strftime(date_format)
+                    
+                return render_template("update_resource.html",responses = responses,blood_groups = blood_groups)  
+            else:
+                return redirect("/admin/verify")
+            
     elif request.method == "POST":
         
         data = request.get_json()["data"]
@@ -514,6 +522,7 @@ def admin_login():
             data = db_session.query(User).filter_by(username=name, password=passw).first()
             if data is not None:
                 session['logged_in'] = True
+                session['username'] = name
                 return redirect("/admin/home")
             else:
                 return render_template("admin_login.html",message="No such user exists.")
@@ -525,7 +534,11 @@ def admin_home():
     if not session.get('logged_in'):
         return redirect("/admin/login")
     else:
-        return render_template('admin_home.html',state_names=state_names,services_indices=services_indices)
+        user = db_session.query(User).filter_by(username=session["username"]).first()
+        if user.number_verified:
+            return render_template('admin_home.html',state_names=state_names,services_indices=services_indices)
+        else:
+            return redirect("/admin/verify")
 
 @app.route('/admin/register', methods=['GET',"POST"])
 def admin_reg():
@@ -533,7 +546,11 @@ def admin_reg():
         if not session.get('logged_in'):
             return render_template("admin_register.html")
         else:
-            return redirect("/admin/home")
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                return redirect("/admin/home")
+            else:
+                return redirect("/admin/verify")
     else:
         try:
             name = request.form['username']
@@ -546,11 +563,95 @@ def admin_reg():
                 db_session.add(new_user)
                 db_session.commit()
                 session['logged_in'] = True
+                session['username'] = name
                 return redirect("/admin/home")
             else:
                 return render_template('admin_register.html',message="User already exists")
         except:
             return render_template('admin_register.html',message="There was an error")
+
+
+@app.route('/admin/send-otp', methods=["POST"])
+def admin_send_otp():
+    otp = random.randint(1000,9999)
+    number = request.form['recipient_contact']
+    try:
+        new_number = {
+                "otp":otp,
+                "username":session["username"]
+            }
+        
+        registration = db_session.query(UserRegistrations).filter_by(username=session["username"]).first()
+        
+        if registration is None:
+            new_number = UserRegistrations(**new_number)
+            db_session.add(new_number)
+            db_session.commit()
+
+            message = twilio_client.messages \
+                    .create(
+                        body=f"Your covid-resources verification code is {otp}",
+                        from_= creds["twilio_number"],
+                        to=f'+91{number}'
+                    )
+
+            return "2",200
+        else:
+            contact = db_session.query(UserRegistrations).filter_by(username=session["username"])
+            contact.update(new_number)
+            db_session.commit()
+
+            verification = {
+                            "contact":number,
+                            "number_verified":0
+                        }
+
+            user = db_session.query(User).filter_by(username=session["username"])
+            user.update(verification)
+            db_session.commit()
+
+            message = twilio_client.messages \
+                .create(
+                        body=f"Your covid-resources verification code is {otp}",
+                        from_= creds["twilio_number"],
+                        to=f'+91{number}'
+                    )
+            return "2",200
+    except:
+        return "Error",500
+
+@app.route('/admin/verify', methods=['GET',"POST"])
+def admin_verify():
+    if request.method == "GET":
+        if not session.get('logged_in'):
+            return redirect("/admin/login")
+        else:
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                return redirect("/admin/home")
+            else:
+                return render_template("admin_verify.html")
+    else:
+        number = request.form['recipient_contact']
+        otp = request.form['otp']
+        try:
+            resource = db_session.query(UserRegistrations).filter_by(username=session["username"]).first()
+            if resource is not None:
+                if resource.otp == int(otp):
+                    verification = {
+                        "contact":number,
+                        "number_verified":1
+                    }
+                    user = db_session.query(User).filter_by(contact=number)
+                    user.update(verification)
+                    db_session.commit()
+                    return "1",200
+                else:
+                    return "0",200
+            else:
+                return "Error",500  
+        except:
+            return "Error",500
 
 @app.route('/register-recipient', methods=['GET',"POST"])
 def register_recipient():
@@ -685,7 +786,7 @@ def send_otp():
                      )
                 return "2",200
     except:
-        return "Error",200
+        return "Error",500
 
 @app.route('/verify-otp', methods=["POST"])
 def verify_otp():
