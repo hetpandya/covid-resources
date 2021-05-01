@@ -661,24 +661,23 @@ def register_recipient():
         city_id = int(data["city-select"])
         name = data['recipient-name'].strip()
         contact = data["recipient-contact"].strip()
-        resource_types = data["service"]
+        resource_type = int(data["service"])
         address = data["resource-address"].strip().capitalize()
         additional_information = data["resource-info"].strip().capitalize()
         resource_count = int(data["resource-count"]) if data.get("resource-count") else ""
         # receive_notifications = int(data["verification-check"]) if data.get("verification-check") else 0
         receive_notifications = 1
         other_cities = int(data["other-cities"]) if data.get("other-cities") else 0
+        if data.get("blood-group"):
+            blood_group = data["blood-group"]
+        else:
+            blood_group = ""
+        
         last_updated = datetime.now(timezone('Asia/Kolkata'))
                 
         try:
-            for resource_type in resource_types:
-                if resource_type == 2 and data.get("blood-group"):
-                    blood_group = data["blood-group"]
-                else:
-                    blood_group = ""
-                    
-                resource = {
-                "resource_type":int(resource_type),
+            resource = {
+                "resource_type":resource_type,
                 "available":1,
                 'verified':1,
                 "state_id":state_id,
@@ -689,15 +688,15 @@ def register_recipient():
                 "additional_information":additional_information,
                 'last_updated' : last_updated}
             
-                new_resource = Resources(**resource)
-                db_session.add(new_resource)
-                db_session.commit()
-                
-                recipient = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id,"address":address,"receive_notifications":receive_notifications,"receive_notifications_all_cities":other_cities}
+            new_resource = Resources(**resource)
+            db_session.add(new_resource)
+            db_session.commit()
+            
+            recipient = {"name":name,"contact":contact,"blood_group":blood_group,"resource_id":new_resource.id,"address":address,"receive_notifications":receive_notifications,"receive_notifications_all_cities":other_cities}
 
-                new_recipient = Recipients(**recipient)
-                db_session.add(new_recipient)
-                db_session.commit()
+            new_recipient = Recipients(**recipient)
+            db_session.add(new_recipient)
+            db_session.commit()
 
             new_number = {
                 "contact":contact,

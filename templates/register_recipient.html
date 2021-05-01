@@ -122,9 +122,9 @@
                                              Resource:
                                           </h6>
                                           {% for ix in range(1,services_indices|length) %}
-                                          <div class="custom-control custom-checkbox {{services_indices[ix]}}-container">
-                                             <input type="checkbox" class="custom-control-input service-control" id="{{services_indices[ix]}}-checkbox" name="{{services_indices[ix]}}" value="{{ix}}">
-                                             <label class="custom-control-label" for="{{services_indices[ix]}}-checkbox">
+                                          <div class="form-check">
+                                             <input class="form-check-input service-radio" type="radio" name="service" id="{{services_indices[ix]}}-radio" value="{{ix}}">
+                                             <label class="form-check-label" for="{{services_indices[ix]}}-radio">
                                              {%if ix == 2%}
                                                 Plasma Donors
                                              {%elif ix == 3%}
@@ -398,22 +398,22 @@
          
          });
          
-         $('.service-control').on('change', function() {
-            var boxes = $('.service-control:checked');
-            var resources_list = [];
-
-            if(boxes.length > 0){
-               for(var i = 0; i < boxes.length; i++){
-                     resources_list.push(boxes[i].value);
-                  }
-            }
-
-            if(resources_list.includes("2")){
+         $('.service-radio').on('change', function() {
+             service_value = this.value;
+             if(service_value == 2){
                  $(".blood-group-container").show();
              }
              else{
                  $(".blood-group-container").hide();
              }
+         
+             if(service_value != 4){
+                 $(".resource-count-container").show();
+             }
+             else{
+                 $(".resource-count-container").hide();
+             }
+         
          });
          
          $('.verification-check').on('change', function() {
@@ -424,6 +424,7 @@
              else{
                  $(".other-cities-container").hide();
              }
+         
          });
          
          $(".search-btn").click(function(e){
@@ -432,13 +433,11 @@
              {
                 donor_name = $("#recipient-name").val();
                 donor_contact = $("#recipient-contact").val();
-
+                service_value = $(".service-radio:checked").val();
                 $(".resource-alert").hide();
                 $(".success-alert").hide();
                 $(".error-alert").hide();
                 var resources_list = [];
-                var boxes = $('.service-control:checked');
-
                 var other_cities; 
                 if($('#other-cities-checkbox:checked').length>0){
                     other_cities = 1;
@@ -448,13 +447,9 @@
                 }
                 var form_data = $("#contribution-form").serializeArray().reduce(function(a, x) { a[x.name] = x.value; return a; }, {});
                 form_data["other-cities"] = other_cities;
-                if(donor_name != "" && donor_contact != "" && boxes.length > 0)
+                if(donor_name != "" && donor_contact != "" && service_value)
                 {
-                    for (var i = 0; i < boxes.length; i++){
-                        resources_list.push(boxes[i].value);
-                    }
-                    form_data["service"] = resources_list;
-                    if(resources_list.includes("2") && $("input:radio[name=blood-group]:checked").length == 0){
+                    if(service_value == 2 && $("input:radio[name=blood-group]:checked").length == 0){
                         $(".resource-alert").html("Please select a blood group.").show();
                     }  
                     else{
@@ -480,14 +475,7 @@
                                     if($("input:radio[name=update-verification-check]:checked").length > 0){
                                         $("input:radio[name=update-verification-check]:checked")[0].checked = false;
                                     }
-                                    var uncheck=$('.custom-control-input');
-                                    for(var i=0;i<uncheck.length;i++)
-                                    {
-                                       if(uncheck[i].type=='checkbox')
-                                       {
-                                          uncheck[i].checked=false;
-                                       }
-                                    }
+                                    $(".service-radio:checked")[0].checked = false;
                                     $("#recipient-name").val("");
                                     $("#recipient-contact").val("");
                                     $("#recipient-otp").val("");
