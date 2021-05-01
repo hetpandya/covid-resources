@@ -1821,10 +1821,6 @@
                     "name": "Mumbai City"
                 },
                 {
-                    "id": "18",
-                    "name": "Mumbai Suburban"
-                },
-                {
                     "id": "19",
                     "name": "Nagpur"
                 },
@@ -1895,6 +1891,10 @@
                 {
                     "id": "36",
                     "name": "Yavatmal"
+                },
+                {
+                    "id": "37",
+                    "name": "Dombivali"
                 }
             ],
               "coordinates" :[
