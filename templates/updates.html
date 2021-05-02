@@ -5,21 +5,10 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<style>
-    
-    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container,.resources-table-container,.no-resources-alert{
-        display: none;
-    }
-
-    .search-btn{
-        margin-left: 15px;
-    }
-    
-    </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
 	
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+    
 	<title>Updates that are in progress</title>
 </head>
 
@@ -27,43 +16,52 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <br>
-                <br>
-                <h2 class="text-center mb-5">Updates in Progess</h2>
+                {% include 'header_base.html' %}
                 <div class="row">
                     
                     <div class="col-md-6 offset-md-3">
-                        <ul class="nav">
-                            <li class="nav-item">
-                              <a class="nav-link active" aria-current="page" href="/">Home</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/add-data" tabindex="-1" aria-disabled="true">Add Resources</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Updates in Progress</a>
-                            </li>
-                        </ul>
-
-                        <span class="anchor"></span>
-                        <form action="/search-resources">
-                            <div class="card card-outline-secondary">
-                                <div class="card-body">
-                                    <hr>
-                                    <div class="form-group row">
-                                        <ul">
-                                            <li>Registering as a recipient to receive SMS notifications if a donor exists in their area.</li>
-                                            <li>Approval from admin to add a Resource.</li>
-                                            <li>Mark a Resource as inappropriate.</li>
-                                            <li>Managing duplicates.</li>
-                                        </ul>
-                                    </div>
+                        <nav class="navbar navbar-dark bg-primary">
+                            <span class="navbar-brand">Updates in Progress</span>
+                            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                        
+                            <div class="collapse navbar-collapse" id="navbarCollapse">
+                                <div class="navbar-nav">
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/" aria-current="page">Home</a>
+                                    {% endif %}
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Update Resources</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/add-data" aria-current="page">Add Resources</a>
+                                    {% endif %}
+                                    {% if not session['logged_in'] %}
+                                        <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
+                                        <a class="nav-link active" href="/unsubscribe-recipient" tabindex="-1" aria-disabled="true">Unsubscribe as a Recipient</a>
+                                    {% endif %}
+                                        <a class="nav-link disabled" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </form>
+                        </nav>
+                        <div class="card card-outline-secondary">
+                            <div class="card-body">
+                                <hr>
+                                <div class="form-group row">
+                                    <ul">
+                                        <li>Registering as a recipient to receive SMS notifications if a donor exists in their area.</li>
+                                        <li>Approval from admin to add a Resource.</li>
+                                        <li>Mark a Resource as inappropriate.</li>
+                                        <li>Managing duplicates.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,8 +70,6 @@
     </div>
 
 
-    <br>
-    <br>
     <br>
 
     {% include 'footer.html' %}

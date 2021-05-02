@@ -29,51 +29,45 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <br>
-                <br>
-                <h2 class="text-center mb-5">
-                    {% if session['logged_in'] %}
-                        Update Resource
-                    {%else%}
-                        Request Update in Resource
-                    {%endif%}
-                </h2>
+                {% include 'header_base.html' %}
                 <div class="row">
                     <div class="col-md-6 offset-md-3">
-                        <ul class="nav">
-                            {% if session['logged_in'] %}
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/" aria-current="page">Home</a>
-                              </li>
-                            {% endif %}
-                            {% if session['logged_in'] %}
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Update Resources</a>
-                            </li>
-                            {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/add-data" aria-current="page">Add Resources</a>
-                              </li>
-                            {% endif %}
-                            {% if not session['logged_in'] %}
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
-                            </li>
-                            {% endif %}
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
-                            </li>
-                            {% if session['logged_in'] %}
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                        <span class="anchor"></span>
+                        <nav class="navbar navbar-dark bg-primary">
+                            <span class="navbar-brand">
+                                {% if session['logged_in'] %}
+                                    Update Resource
+                                {%else%}
+                                    Request Update in Resource
+                                {%endif%}
+                            </span>
+                            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                        
+                            <div class="collapse navbar-collapse" id="navbarCollapse">
+                                <div class="navbar-nav">
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/" aria-current="page">Home</a>
+                                    {% endif %}
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Update Resources</a>
+                                        <a class="nav-link active" href="/admin/view-inappropriate-resources" tabindex="-1" aria-disabled="true">View Resources Marked as Inappropriate</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/add-data" aria-current="page">Add Resources</a>
+                                    {% endif %}
+                                    {% if not session['logged_in'] %}
+                                        <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
+                                        <a class="nav-link active" href="/unsubscribe-recipient" tabindex="-1" aria-disabled="true">Unsubscribe as a Recipient</a>
+                                    {% endif %}
+                                        <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </nav>
                         {% if session['logged_in'] %}
                             <form action="/admin/manage-resource/{{responses['resource_id']}}" method="post" id="contribution-form">
                         {% else %}
@@ -243,9 +237,6 @@
 
 
     <br>
-    <br>
-    <br>
-   
     {% include 'footer.html' %}
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

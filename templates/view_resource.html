@@ -28,26 +28,39 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <br>
-                <br>
-                <h2 class="text-center mb-5">View State Resources</h2>
+                {% include 'header_base.html' %}
                 <div class="row">
                     <div class="col-md-6 offset-md-3">
-                        <ul class="nav">
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Add Resources</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
-                            </li>
-                            <li class="nav-item">
-                              <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
-                            </li>
-                        </ul>
-                        <span class="anchor"></span>
+                        <nav class="navbar navbar-dark bg-primary">
+                            <span class="navbar-brand">View State Resources</span>
+                            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                        
+                            <div class="collapse navbar-collapse" id="navbarCollapse">
+                                <div class="navbar-nav">
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/" aria-current="page">Home</a>
+                                    {% endif %}
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Update Resources</a>
+                                        <a class="nav-link active" href="/admin/view-inappropriate-resources" tabindex="-1" aria-disabled="true">View Resources Marked as Inappropriate</a>
+                                    {% else %}
+                                        <a class="nav-link active" href="/add-data" aria-current="page">Add Resources</a>
+                                    {% endif %}
+                                    {% if not session['logged_in'] %}
+                                        <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
+                                        <a class="nav-link active" href="/unsubscribe-recipient" tabindex="-1" aria-disabled="true">Unsubscribe as a Recipient</a>
+                                    {% endif %}
+                                        <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
+                                    {% if session['logged_in'] %}
+                                        <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </nav>
                         <form action="/add-data" method="post" id="contribution-form">
                             <div class="card card-outline-secondary">
                                 <div class="card-body">
@@ -138,8 +151,6 @@
     </div>
 
 
-    <br>
-    <br>
     <br>
 
     {% include 'footer.html' %}
