@@ -47,12 +47,12 @@ def search_resources():
             response = []
 
             if other_cities == 1:
-                db_query = db_session.query(Resources).filter_by(state_id = state_id,
+                db_query = db_session.query(Resources).order_by(Resources.last_updated.desc()).filter_by(state_id = state_id,
                                                                 resource_type=int(req_res),
                                                                 donor_or_recipient=0,
                                                                 is_approved_by_admin=1).all()
             else:
-                db_query = db_session.query(Resources).filter_by(state_id = state_id,
+                db_query = db_session.query(Resources).order_by(Resources.last_updated.desc()).filter_by(state_id = state_id,
                                                                 city_id = city_id,
                                                                 resource_type=int(req_res),
                                                                 donor_or_recipient=0,is_approved_by_admin=1).all()
@@ -463,6 +463,78 @@ def manage_resource(resource_id):
         except:
             return "Error",500
 
+@app.route('/inappropriate-resource/<resource_id>', methods=['GET',"POST"])
+def mark_inappropriate(resource_id):
+    if request.method == 'GET':
+        resource = db_session.query(Resources).filter_by(id=resource_id).first()
+
+        try:
+            name = resource.available_donors[0].name
+            contact = resource.available_donors[0].contact
+        except:
+            name = resource.resource_recipients[0].name
+            contact =  resource.resource_recipients[0].contact
+        
+        state_id = resource.state_id
+        city_id = resource.city_id
+
+        location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+
+        responses = {
+                    "resource_name":services_indices[resource.resource_type].replace("-"," ").title(),
+                    "name":name,
+                    'contact':contact,
+                    "available":resource.available,
+                    "count":resource.resource_count,
+                    "location":location,
+                    "verified":resource.verified,
+                    "additional_information":resource.additional_information if resource.additional_information else "",
+                    "is_approved_by_admin":resource.is_approved_by_admin,
+                    "resource_id":resource.id}
+        
+        try:
+            if resource.available_donors != []:
+                responses["address"] = resource.available_donors[0].address
+                if int(resource.resource_type) == 2:
+                    responses["blood_group"] = resource.available_donors[0].blood_group
+                    responses["blood_group_index"] = blood_groups.index(resource.available_donors[0].blood_group)
+            else:
+                responses["blood_group"] = ""
+                responses["blood_group_index"] = ""
+        except:
+            if resource.resource_recipients != []:
+                responses["blood_group"] = resource.resource_recipients[0].blood_group
+                if int(resource.resource_type) == 2:
+                    responses["address"] = resource.resource_recipients[0].address
+                    responses["blood_group_index"] = blood_groups.index(resource_recipients.available_donors[0].blood_group)
+            else:
+                responses["blood_group"] = ""
+                responses["blood_group_index"] = ""
+    
+        if resource.last_updated:
+            responses["last_updated"] = resource.last_updated.strftime(date_format)
+                
+        return render_template("mark_inappropriate.html",responses = responses,blood_groups = blood_groups)  
+
+    elif request.method == "POST":
+        data = request.get_json()["data"]
+        try:
+            inappropriate = db_session.query(InAppropriateResources).filter_by(resource_id=resource_id).first()
+            if inappropriate is None:
+                response = {
+                "resource_id":resource_id,
+                "comment":data["resource-info"]
+                }
+
+                resource = InAppropriateResources(**response)
+                db_session.add(resource)
+                db_session.commit()
+                return "1",200
+            else:
+                return "2",200
+        except:
+            return "Error",500
+
 
 @app.route('/admin/view-resources/<state_id>/<city_id>/<resource_type>', methods=['GET',"POST"])
 def admin_view_resources(state_id,city_id,resource_type):
@@ -470,49 +542,83 @@ def admin_view_resources(state_id,city_id,resource_type):
         if not session.get('logged_in'):
             return redirect("/admin/login")          
         else:       
-            state_id = int(state_id) 
-            city_id = int(city_id)
-            resource_type = int(resource_type)
-            state_name = states_data[int(state_id) - 1]["name"]
-            responses = {}
-            response = []
-            req_res_name = services_indices[resource_type]
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                state_id = int(state_id) 
+                city_id = int(city_id)
+                resource_type = int(resource_type)
+                state_name = states_data[int(state_id) - 1]["name"]
+                responses = {}
+                response = []
+                req_res_name = services_indices[resource_type]
+                
+                for resource in db_session.query(Resources).filter_by(state_id = state_id,
+                                                                    city_id = city_id,
+                                                                    resource_type=resource_type,
+                                                                    donor_or_recipient=0).all():
+                    for donor in resource.available_donors:
+                        contact = donor.contact.replace(",","\n")
+                        city_id = resource.city_id
+                        location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
+                        address = f"\n\nAddress: {donor.address.strip()}" if donor.address and donor.address != "" else ""
+                        additional_information = f"\n\nAdditional Information: {resource.additional_information}" if resource.additional_information and resource.additional_information != "" else ""
+                        
+                        resp_dict = {"name":donor.name + address + additional_information,
+                                            'contact':contact,
+                                            'location':location,
+                                            "available":"Yes" if resource.available else "No",
+                                            "donor_or_recipient":"Recipient" if resource.donor_or_recipient else "Donor",
+                                            "count":resource.resource_count,
+                                            "verified":"Yes" if resource.verified else "No",
+                                            "is_approved_by_admin":"Yes" if resource.is_approved_by_admin else "No",
+                                            "resource_id":resource.id}
+
+                        if int(resource_type) == 2:
+                            resp_dict["blood_group"] = donor.blood_group
+                        response.append(resp_dict)
             
-            for resource in db_session.query(Resources).filter_by(state_id = state_id,
-                                                                city_id = city_id,
-                                                                resource_type=resource_type,
-                                                                donor_or_recipient=0).all():
-                for donor in resource.available_donors:
+                responses[req_res_name] = response
+                return render_template("view_resource.html",state_name = state_name,responses=responses)  
+            else:
+                return redirect("/admin/verify")
+
+@app.route('/admin/view-inappropriate-resources', methods=['GET',"POST"])
+def admin_view_inappropriate_resources():
+    if request.method == 'GET':
+        if not session.get('logged_in'):
+            return redirect("/admin/login")          
+        else:       
+            user = db_session.query(User).filter_by(username=session["username"]).first()
+            if user.number_verified:
+                responses = {services_indices[ix]:[] for ix,res_name in enumerate(services_indices)}
+                
+                for resource,inappropriate_resource in db_session.query(Resources, InAppropriateResources).filter(InAppropriateResources.resource_id == Resources.id).all():
+                    donor = resource.available_donors[0]
                     contact = donor.contact.replace(",","\n")
+                    state_id = resource.state_id
+                    state_name = states_data[int(state_id) - 1]["name"]
                     city_id = resource.city_id
                     location = states_data[state_id - 1]["districts"][city_id - 1]["name"] + ", " + states_data[state_id - 1]["name"]
-                    address = f"\n\nAddress: {donor.address.strip()}" if donor.address and donor.address != "" else ""
-                    additional_information = f"\n\nAdditional Information: {resource.additional_information}" if resource.additional_information and resource.additional_information != "" else ""
                     
-                    resp_dict = {"name":donor.name + address + additional_information,
-                                        'contact':contact,
-                                        'location':location,
-                                        "available":"Yes" if resource.available else "No",
-                                        "donor_or_recipient":"Recipient" if resource.donor_or_recipient else "Donor",
-                                        "count":resource.resource_count,
-                                        "verified":"Yes" if resource.verified else "No",
-                                        "is_approved_by_admin":"Yes" if resource.is_approved_by_admin else "No",
-                                        "resource_id":resource.id}
-
-                    if int(resource_type) == 2:
-                        resp_dict["blood_group"] = donor.blood_group
-                    response.append(resp_dict)
-            
-            responses[req_res_name] = response
-            return render_template("view_resource.html",state_name = state_name,responses=responses)  
-
+                    resp_dict = {"name":donor.name,
+                                'location':location,
+                                "comment":inappropriate_resource.comment,
+                                "resource_id":resource.id}
+                    
+                    req_res_name = services_indices[resource.resource_type]
+                    responses[req_res_name].append(resp_dict)
+                
+                if all(responses[key] == [] for key in responses.keys()):
+                    responses = {}
+                return render_template("view_inappropriate_resources.html",responses=responses)  
+            else:
+                return redirect("/admin/verify")
     
 @app.route('/admin/login', methods=['GET',"POST"])
 def admin_login():
     if request.method == 'GET':
         if not session.get('logged_in'):
             return render_template("admin_login.html")
-            
         else:
             return redirect("/admin/home")
     else:

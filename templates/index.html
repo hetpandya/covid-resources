@@ -162,6 +162,7 @@
                                                         <th scope="col">Verified</th>
                                                         <th scope="col">Last Updated</th>
                                                         <th></th>
+                                                        <th></th>
                                                     </tr>
                                                     </thead>
                                                     
@@ -269,17 +270,21 @@
                         tr_content = response[name];
                         if(tr_content.length > 0)
                         {
-                            $("."+name +"-table table .no-resources-alert").hide();
+                            $("."+name +"-table .no-resources-alert").hide();
                             var $html_content = $('<tbody/>');
                             if( name != "plasma"){
                                 for(var ix = 0; ix < tr_content.length; ix++){
                                     var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                    var mark_inappropriate_btn = "<td><a href='/inappropriate-resource/"+tr_content[ix].resource_id+"' class='btn btn-danger' role='button'>Mark Inappropriate</a></td>";
+                                    manage_button = manage_button + mark_inappropriate_btn;
                                     $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td><td>"+tr_content[ix].last_updated+"</td>"+manage_button+"</tr>");
                                 } 
                             }
                             else{
                                 for(var ix = 0; ix < tr_content.length; ix++){
                                     var manage_button = "<td><a href='/manage-resource/"+tr_content[ix].resource_id+"' class='btn btn-primary' role='button'>Update Resource</a></td>";
+                                    var mark_inappropriate_btn = "<td><a href='/inappropriate-resource/"+tr_content[ix].resource_id+"' class='btn btn-danger' role='button'>Mark Inappropriate</a></td>";
+                                    manage_button = manage_button + mark_inappropriate_btn;
                                     $html_content.append("<tr><th scope='row'>"+(ix+1)+"</th><td>"+tr_content[ix].name+"</td><td>"+tr_content[ix].contact+"</td><td>"+tr_content[ix].location+"</td><td>"+tr_content[ix].blood_group+"</td><td>"+tr_content[ix].available+"</td><td>"+tr_content[ix].count+"</td><td>"+tr_content[ix].verified+"</td><td>"+tr_content[ix].last_updated+"</td>"+manage_button+"</tr>");
                                 }
                             }

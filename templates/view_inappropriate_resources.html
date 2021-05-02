@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+    
+    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container,.resources-table-container,.blood-group-container,.resource-count-container,.resource-alert{
+        display: none;
+    }
+
+    .search-btn{
+        margin-left: 15px;
+    }
+    
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+	
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+	<title>View Resources Marked as Inappropriate</title>
+</head>
+
+<body>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <br>
+                <br>
+                <h2 class="text-center mb-5">View Resources Marked as Inappropriate</h2>
+                
+                <p><b>If you think the resource is inappropriate, click on the "Manage Resource" button besides the resource name. On that Page, you'll have an option that says "Grant Admin Access". Check that option to "No".</b></p>
+                                    
+                <div class="row">
+                    <div class="col-md-6 offset-md-3">
+                        <ul class="nav">
+                            <li class="nav-item">
+                              <a class="nav-link active" href="/admin/home" aria-current="page">Home</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link active" href="/admin/add-data" tabindex="-1" aria-disabled="true">Add Resources</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link active" href="/admin/logout" aria-current="page">Logout</a>
+                            </li>
+                        </ul>
+                        <form action="/add-data" method="post" id="contribution-form">
+                            <div class="card card-outline-secondary">
+                                <div class="card-body">
+                                    <hr>
+                                    <div class="form-group row">
+                                            <div class="col-lg-10">
+                                                <br>
+                                                <div class="table-responsive">
+                                                    {% if responses == {} %}
+                                                        <p class="text-center">No Inappropriate reports for now.</p>
+                                                    {% else %}
+                                                        {%for res in responses.keys() %}
+                                                            {%if responses[res]|length != 0%}
+                                                                <div class="{{res}}-table">
+                                                                    <table class="table">
+                                                                        <h6 class="text-center">
+                                                                            {%if res == "plasma" %}
+                                                                                Plasma Donors
+                                                                            {%elif res == "oxygen" %}
+                                                                                Oxygen Cylinders
+                                                                            {%else%}
+                                                                                {{res.replace("-"," ").title()}}
+                                                                            {%endif%}
+                                                                        </h6>
+                                                                        <thead>
+                                                                        <tr>
+                                                                            <th scope="col">#</th>
+                                                                            <th scope="col">Name</th>
+                                                                            <th scope="col">Location</th>
+                                                                            <th scope="col">Comment</th>
+                                                                            <th></th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        {% for ix in range(responses[res]|length) %}
+                                                                            <tr>
+                                                                                <th scope='row'>{{ix+1}}</th>
+                                                                                <td>{{responses[res][ix].name}}</td>
+                                                                                <td>{{responses[res][ix].location}}</td>
+                                                                                <td>{{responses[res][ix].comment}}</td>
+                                                                                <td><a href='/admin/manage-resource/{{responses[res][ix].resource_id}}' class="btn btn-primary" role="button">Manage Resource</a></td>
+                                                                            </tr>
+                                                                        {%endfor%}
+                                                                    </table>
+                                                                </div>
+                                                            {%endif%}
+                                                        {%endfor%}
+                                                    {% endif %}
+                                                    <br><br>
+            
+                                                </div>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+    
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+
+    <br>
+    <br>
+    <br>
+
+    {% include 'footer.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+
+    <script>
+        $('.states-select').on('change', function() {
+            state_id = this.value;
+            
+            $.ajax({
+                type:"POST",
+                url:'/get-city/'+state_id,
+                data:{},
+                success: function (response) {
+                    $(".error-alert").hide();
+                    $(".resources-table-container").hide();
+                    $(".search-btn").show();
+                    $(".services-container").show();
+                    $(".district-container").html("");
+                    $(".district-container").html("<h6>City:</h6>");
+                    var $select = $('<select/>', {
+                        'class':"selectpicker city-select",
+                        "data-live-search":"true",
+                        "name":"city-select"
+                    });
+                    for (var idx in response) {
+                        $select.append('<option value=' + response[idx].id + '>' + response[idx].name + '</option>');
+                    }
+                    $select.appendTo('.district-container').selectpicker('refresh');
+                },
+                error: function () {
+                    $(".error-alert").show();
+                    $(".services-container").hide();
+                }
+            });
+
+        });
+
+        $('.service-radio').on('change', function() {
+            service_value = this.value;
+            if(service_value == 2){
+                $(".blood-group-container").show();
+            }
+            else{
+                $(".blood-group-container").hide();
+            }
+
+            if(service_value == 0 || service_value == 1 || service_value == 2){
+                $(".resource-count-container").show();
+            }
+            else{
+                $(".resource-count-container").hide();
+            }
+
+        });
+
+        $(".search-btn").click(function(e){
+            e.preventDefault();
+            donor_name = $("#donor-name").val();
+            donor_contact = $("#donor-contact").val();
+            service_value = $(".service-radio:checked").val();
+            $(".wait-alert").show();
+            var resources_list = [];
+            var form_data = $("#contribution-form").serializeArray().reduce(function(a, x) { a[x.name] = x.value; return a; }, {});
+            if(donor_name != "" && donor_contact != "" && service_value)
+            {
+                if(service_value == 2 && $("input:radio[name=blood-group]:checked").length == 0){
+                    $(".resource-alert").html("Please select a blood group.").show();
+                }   
+                else{
+                    $.ajax({
+                            type:"POST",
+                            url:'/add-data',
+                            'contentType': 'application/json',
+                            'data': JSON.stringify({
+                                "data":form_data
+                            }),
+                            'processData': false,
+                            success: function (response) {
+                                $(".resource-alert").hide();
+                                $(".success-alert").show();
+                                $(".wait-alert").hide();
+                                if($("input:radio[name=blood-group]:checked").length > 0){
+                                    $("input:radio[name=blood-group]:checked")[0].checked = false;
+                                }
+                                if($("input:radio[name=verification-check]:checked").length > 0){
+                                    $("input:radio[name=verification-check]:checked")[0].checked = false;
+                                }
+                                $(".service-radio:checked")[0].checked = false;
+                                $("#donor-name").val("");
+                                $("#donor-contact").val("");
+                                $("#resource-count").val("");
+                                $(".resources-table").show();
+                                $(".error-alert").hide();
+                            },
+                            error: function () {
+                                $(".resource-alert").hide();
+                                $(".error-alert").show();
+                            }
+                    });
+                }
+            } 
+            else{
+                $(".resource-alert").html("Please enter Name, Contact and a Resource.").show();
+            }
+            
+        });
+    </script>
+</body>
+
+</html>

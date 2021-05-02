@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+    
+    .name-alert,.success-alert,.upload-btn,.wait-alert,.error-alert,.services-container,.resources-table-container,.resource-count-container,.resource-alert{
+        display: none;
+    }
+
+    .search-btn{
+        margin-left: 15px;
+    }
+    
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+	
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.standalone.min.css" integrity="sha512-TQQ3J4WkE/rwojNFo6OJdyu6G8Xe9z8rMrlF9y7xpFbQfW5g8aSWcygCQ4vqRiJqFsDsE1T6MoAOMJkFXlrI9A==" crossorigin="anonymous" />
+	<title>Mark Resource as Inappropriate</title>
+</head>
+
+<body>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <br>
+                <br>
+                <h2 class="text-center mb-5">
+                    Mark Resource as Inappropriate
+                </h2>
+                <div class="row">
+                    <div class="col-md-6 offset-md-3">
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/" aria-current="page">Home</a>
+                              </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/add-data" aria-current="page">Add Resources</a>
+                              </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/register-recipient" tabindex="-1" aria-disabled="true">Register as a Recipient</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/unsubscribe-recipient" tabindex="-1" aria-disabled="true">Unsubscribe as a Recipient</a>
+                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="/updates" tabindex="-1" aria-disabled="true">Updates in Progress</a>
+                            </li>
+                        </ul>
+                        <span class="anchor"></span>
+                            <form action="/inappropriate-resource/{{responses['resource_id']}}" method="post" id="contribution-form">
+                            <div class="card card-outline-secondary">
+                                <div class="card-body">
+                                    <hr>
+                                    <div class="form-group row">
+                                            <div class="col-lg-10">
+                                                <br>
+                                                <h6>{{responses["resource_name"] }} - {{responses["location"]}}:</h6>
+                                                <br>
+                                                <p><b>Donor Name: </b>{{responses['name']}}</p>
+                                                <p><b>Donor Contact: </b>{{responses['contact']}}</p>
+                                                {% if responses['additional_information'] %}
+                                                    <p><b>Additional Contact/Resource Information if any: </b>{{responses['additional_information']}}</p>
+                                                {% endif %}
+                                                {% if responses['count'] %}
+                                                    <p><b>Resource Count: </b>{{responses['count']}}</p>
+                                                {% endif %}
+                                                {% if responses['address'] %}
+                                                    <p><b>Address: </b>{{responses['address']}}</p>
+                                                {% endif %} 
+                                                <p><b>Verified: </b>{%if not responses.verified %}No{% else %}Yes{%endif%}</p>
+                                                {% if responses.get("blood_group") %}
+                                                    <p><b>Blood Group: </b>{{responses["blood_group"]}}</p>
+                                                {% endif %}
+                                                <p><b>Is this still available?: </b>{%if not responses.available %}No{% else %}Yes{%endif%}</p>
+                                                <p><b>Last Updated: </b>{{responses["last_updated"]}}</p>
+                                                <div class="mb-3">
+                                                    <b>Further Explanation:</b><br><br>
+                                                    <textarea class="form-control" id="resource-info" name="resource-info" rows="3" placeholder="Please explain further, why is this information inappropriate/should be hidden from search results."></textarea>
+                                                </div>     
+                                            </div>
+                                        </div>
+                                        
+                                        <hr>
+                                    <div class="form-group row">
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-primary search-btn">
+                                                Mark as Inappropriate
+                                            </button>
+    
+                                            <div class="alert alert-light wait-alert" role="alert">
+                                                Submitting..
+                                            </div>
+
+                                            <div class="alert alert-light resource-alert" role="alert">
+                                                This resource is already under review.
+                                            </div>
+                                            
+                                            <div class="alert alert-light success-alert" role="alert">
+                                                Your response has been submitted. One of our volunteers will review the information. Thank you for your contribution❤️
+                                            </div>
+
+                                            <div class="alert alert-secondary error-alert" role="alert">
+                                                There was an error ☹️.
+                                            </div>
+    
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+    
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+
+    <br>
+    <br>
+    <br>
+   
+    {% include 'footer.html' %}
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(".search-btn").click(function(e){
+            e.preventDefault();
+            $(".wait-alert").show();
+            var form_data = $("#contribution-form").serializeArray().reduce(function(a, x) { a[x.name] = x.value; return a; }, {});
+            $.ajax({
+                            type:"POST",
+                            url:$("#contribution-form")[0].action,
+                            'contentType': 'application/json',
+                            'data': JSON.stringify({
+                                "data":form_data
+                            }),
+                            'processData': false,
+                            success: function (response) {
+                                if(response == "2"){
+                                    $(".resource-alert").show();
+                                    $(".success-alert").hide();
+                                }
+                                else{
+                                    $(".resource-alert").hide();
+                                    $(".success-alert").show();
+                                }
+                                $(".wait-alert").hide();
+                                $(".error-alert").hide();
+                                $("#resource-info").val("");
+                            },
+                            error: function () {
+                                $(".resource-alert").hide();
+                                $(".error-alert").show();
+                            }
+                });
+        });
+    </script>
+</body>
+
+</html>

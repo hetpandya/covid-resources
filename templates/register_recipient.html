@@ -346,7 +346,10 @@
                              $(".otp-container .alert").hide();
                              $(".otp-container .otp-success-alert").show(); 
                              $(".other-content").show();
-                             $('.states-select').val('-1').change();
+                             state_id = $(".states-select :selected").val();
+                             if(state_id != "-1"){
+                              $('.states-select').val('-1').change();
+                             }
                              verified = true;
                          }
                          else{
@@ -374,9 +377,7 @@
                  data:{},
                  success: function (response) {
                      $(".error-alert").hide();
-                     $(".resources-table-container").hide();
                      $(".search-btn").show();
-                     $(".services-container").show();
                      $(".district-container").html("");
                      $(".district-container").html("<h6>Your City/District:</h6>");
                      var $select = $('<select/>', {
